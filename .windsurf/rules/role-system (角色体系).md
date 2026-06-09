@@ -46,8 +46,9 @@ trigger: always_on
 - 代码审查员：`shared/roles/execution/reviewer(代码审查员).md`
   - 审查 diff、提示风险、评估测试覆盖。只读不改。
 
-- 判断层评审：`shared/roles/meta/judgment-layer(判断层评审).md`
+- 判断层评审：`shared/roles/meta/judgment-layer(判断层评审).md` — ⏸️ 已挂起（暂停使用）
   - 检查输出是否符合"操作层 + 判断层 + 如实呈现 AI 短板"。不直接改写，只输出建议。
+  - **当前已挂起**：该评审门暂时从流程中移除，各阶段无需调用此角色；角色文件保留，恢复时去掉本挂起标记即可。
 
 ## 边界原则
 

@@ -89,12 +89,19 @@ New-Item -ItemType File -Path "content-library/$slug/01-topic/README.md", "conte
    - `02-plan/README.md` 头部 frontmatter 设置 `status: draft`。
    - 将 `content-library/PIPELINE.md` 看板中的 02 策划状态列置为 `draft`。
 
-### 7. 触发判断层评审门 (Review Gate)
+### 7. ~~触发判断层评审门 (Review Gate)~~ ⏸️ 已挂起（暂停使用）
 
+> ⚠️ **判断层评审门已挂起**：判断层评审（CHAI 质量门）已暂时从流程中移除，本阶段无需调用 `/meta/judgment-layer(判断层评审)`。
+> 完成 Schema 校验并自查无误后，可直接将 `content-library/PIPELINE.md` 看板中该期 02 策划列置为 `approved`，然后执行 `/03-video-planning-bilibili` 进入 B站视听编排阶段。
+> 恢复方法：删除本节的"已挂起"标记与本提示，并取消下方注释块的注释即可还原评审门。
+
+<!-- 判断层评审门（已挂起，恢复时取消本块注释）
 提示用户：
 > “技术调研驱动的内容策划已落盘归档至 `02-plan/README.md`，并生成了待验证假设清单。
 > 请通过调用 `/meta/judgment-layer(判断层评审)` 对本产物进行首轮 CHAI 规则质量评审。
 > 评审通过且看板标为 `approved` 后，可执行 `/03-video-planning-bilibili` 进入 B站视听编排阶段。”
+-->
+
 
 ---
 

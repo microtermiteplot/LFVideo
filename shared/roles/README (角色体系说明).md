@@ -59,7 +59,7 @@
 
 | 角色 | 何时使用 | 状态 |
 |------|---------|------|
-| [判断层评审](./meta/judgment-layer(判断层评审).md) | 遵循 CHAI 规则与漏洞决策树的硬核质量门角色 | ✅ 可用 |
+| [判断层评审](./meta/judgment-layer(判断层评审).md) | 遵循 CHAI 规则与漏洞决策树的硬核质量门角色 | ⏸️ 已挂起（暂停使用，文件保留） |
 
 ---
 
@@ -98,6 +98,8 @@
 
 ## 质量门与契约校验
 
+> ⏸️ **判断层评审门已挂起（暂停使用）**：下文"终审质量门 (CHAI 评审员)"已暂时从流程中移除，当前各阶段放行仅依赖 Schema 契约校验 + 人工确认。判断层评审角色文件保留，恢复时去掉本提示即可。
+
 为降低人机协作中的信息衰减并强制保障“操作层 + 判断层 + AI局限点”内容质量，本角色体系在 L0.5 阶段深度融合了 JSON Schema 契约校验与 CHAI 规则质量门。
 
 ### 1. 契约校验 (JSON Schema)
@@ -107,8 +109,8 @@
 - **B站视听编排阶段 (03)**：[`shared/schemas/03-plan-bilibili.schema.json`](../schemas/03-plan-bilibili.schema.json)（强制要求 `video_spec`, `scene_storyboards`, `zoom_crop_directives`）
 - **脚本阶段 (04)**：[`shared/schemas/04-script.schema.json`](../schemas/04-script.schema.json)（强制要求 `judgment_layer_coverage` 等）
 
-### 2. 终审质量门 (CHAI 评审员)
-每个阶段落盘为 `draft` 后，必须调用 [判断层评审](./meta/judgment-layer(判断层评审).md) 角色。
+### 2. 终审质量门 (CHAI 评审员) — ⏸️ 已挂起（暂停使用）
+~~每个阶段落盘为 `draft` 后，必须调用 [判断层评审](./meta/judgment-layer(判断层评审).md) 角色。~~（当前已挂起：落盘 `draft` 后无需调用判断层评审，Schema 校验通过并经人工确认即可置为 `approved`。）
 该角色依据 **CHAI 规则**（准确、完整、建设性）对草稿进行审计，漏洞严重度分为 `[CRITICAL]` / `[SUGGESTION]` / `[NITPICK]`。
 - **放行条件 (approved)**：必须 Schema 校验通过 且 评审结果为 **0 [CRITICAL] 漏洞** (获得 **PASS**)，才允许在 [`content-library/PIPELINE.md`](../../content-library/PIPELINE.md) 看板中将该阶段置为 `approved`。
 

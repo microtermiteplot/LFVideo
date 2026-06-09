@@ -69,12 +69,19 @@ description: B站视听策划 - 读取上游故事大纲，自动生成 Remotion
 - 头部 frontmatter 置 `status: draft`（待人工评审通过后方可改为 `approved`）。
 - 更新 `content-library/PIPELINE.md` 看板：该期 03 B站视听列置为 `draft`。
 
-### 8. 触发判断层评审门 (Review Gate)
+### 8. ~~触发判断层评审门 (Review Gate)~~ ⏸️ 已挂起（暂停使用）
 
+> ⚠️ **判断层评审门已挂起**：判断层评审（CHAI 质量门）已暂时从流程中移除，本阶段无需调用 `/meta/judgment-layer(判断层评审)`。
+> 完成 Schema 校验并自查无误后，可直接将 `content-library/PIPELINE.md` 看板中该期 03 B站视听列置为 `approved`，然后执行 `/04-script-draft` 进入脚本撰写阶段。
+> 恢复方法：删除本节的"已挂起"标记与本提示，并取消下方注释块的注释即可还原评审门。
+
+<!-- 判断层评审门（已挂起，恢复时取消本块注释）
 提示用户：
 > “B站视听编排蓝图已落盘归档至 `03-plan-bilibili/README.md` 并生成了结构化校验块。
 > 请通过调用 `/meta/judgment-layer(判断层评审)` 对本产物进行 CHAI 规则质量评审。
 > 评审通过且看板标为 `approved` 后，可执行 `/04-script-draft` 进入脚本撰写阶段。”
+-->
+
 
 ---
 
