@@ -1,0 +1,25 @@
+{
+  "name": "openmontage-remotion-composer",
+  "version": "1.0.0",
+  "description": "Remotion composition renderer for OpenMontage animated explainer videos",
+  "scripts": {
+    "start": "npx remotion studio",
+    "build": "npx remotion render src/index.tsx Explainer out/video.mp4",
+    "upgrade": "npx remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/captions": "^4.0.470",
+    "@remotion/cli": "^4.0.470",
+    "@remotion/google-fonts": "^4.0.470",
+    "@remotion/media": "^4.0.470",
+    "@remotion/player": "^4.0.470",
+    "@remotion/transitions": "^4.0.470",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "remotion": "^4.0.470"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.15",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ai-ide-workflows/schemas/04-script",
+  "title": "Video Script Schema",
+  "description": "Schema for validating the 04-script structured block",
+  "type": "object",
+  "required": [
+    "title",
+    "sections",
+    "judgment_layer_coverage"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "track", "voice", "visual_instructions", "duration_hint_seconds"],
+        "properties": {
+          "id": { "type": "string" },
+          "track": {
+            "type": "string",
+            "enum": ["A", "B", "A/B"],
+            "description": "A-rail (Concept animation), B-rail (OS screen recording), or A/B split"
+          },
+          "voice": { "type": "string", "description": "The exact spoken voiceover script" },
+          "visual_instructions": { "type": "string", "description": "Visual scene prompt or Remotion code instructions" },
+          "duration_hint_seconds": { "type": "number", "minimum": 1 }
+        }
+      }
+    },
+    "judgment_layer_coverage": {
+      "type": "object",
+      "required": ["highlights_pitfall", "explains_boundary", "acceptance_standard"],
+      "properties": {
+        "highlights_pitfall": {
+          "type": "boolean",
+          "description": "Does the script explicitly show a failure moment/pitfall?"
+        },
+        "explains_boundary": {
+          "type": "boolean",
+          "description": "Does the script define the boundary of what AI can/cannot do?"
+        },
+        "acceptance_standard": {
+          "type": "boolean",
+          "description": "Does the script explain how the human verifies/accepts the code?"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

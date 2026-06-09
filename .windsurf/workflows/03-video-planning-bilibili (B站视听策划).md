@@ -1,0 +1,85 @@
+---
+description: B站视听策划 - 读取上游故事大纲，自动生成 Remotion 组件映射、Props 接口、动画 Cue、录屏 zoom 指令，完成从"故事"到"可执行视频蓝图"的技术编排。
+---
+
+# B站视听策划 Workflow (03-video-planning-bilibili)
+
+本工作流由【视听策划师】全自动执行，用于连接**故事大纲（02）**与**脚本撰写（04）**，将抽象的视觉意图翻译为可执行的 Remotion 技术规格。
+
+---
+
+## 前置依赖
+
+本工作流假设已完成 `/02-content-planning`，已具备：
+- 处于 `approved` 状态的 `content-library/<epNN-slug>/02-plan/README.md`
+- 定稿的故事大纲（含 `outline_sections` 与 `demo_design`）
+- **必须读取组件说明书**：`shared/docs/remotion-spec.md`（定义了可用的组件和动画限制）
+
+如果缺失，请提示用户先执行或通过 `/02-content-planning`。
+
+---
+
+## 步骤
+
+### 1. 加载角色定义
+
+读取 `shared/roles/content/visual-planner(视听策划师).md` 文件，理解视听策划师的定位与全自动编排协议。
+
+### 2. 加载上游资产与组件库规格
+
+读取以下文件，为自动编排提供完整输入：
+- `content-library/<epNN-slug>/02-plan/README.md`（已定稿的故事大纲）
+- `shared/docs/remotion-spec.md`（Remotion 组件库规格）
+
+如果上游资产不是 `approved` 状态，请明确提示用户。
+
+### 3. 解析与组件映射 (AI 自动)
+
+1. 解析 `02-plan/README.md` 中的 `outline_sections`，提取每个 section 的 `scene_template` 抽象描述。
+2. 对照 `remotion-spec.md`，执行组件匹配决策：
+   - 若现有组件可表达（如 `@IntroScene`, `@TableScene`, `@TimelineScene`）→ 复用。
+   - 若无法表达 → 声明新 `Template Ticket`。
+3. 为每个 section 生成 Props 填充策略与动画 Cue 表。
+
+### 4. 生成 B 轨录屏指令 (AI 自动)
+
+针对 `demo_design` 与包含 B 轨的 section：
+1. 分析录屏片段中的关键 UI 区域。
+2. 生成 `zoom_crop_directives`（clip_id, 时间戳, zoom_level, focal_point）。
+
+### 5. 输出视听编排蓝图
+
+整合以上产物，生成完整的 `03-plan-bilibili/README.md`，结构按 `visual-planner` 角色定义的【输出格式】执行。
+
+末尾必须附带符合 `shared/schemas/03-plan-bilibili.schema.json` 的 ` ```json ` 结构化校验块。
+
+### 6. 流程质量自检与 Schema 校验
+
+输出前自检：
+- ❌ **组件覆盖度自检**：每个 section 是否都映射到了具体组件或 Ticket？（禁止留下未解决的抽象描述）
+- ❌ **Schema 机器校验**：模拟校验 JSON 结构块。后续自动化可执行：
+  ```bash
+  # 校验视听编排蓝图是否符合 03-plan-bilibili 规范
+  npx ajv validate -s shared/schemas/03-plan-bilibili.schema.json -d content-library/<epNN-slug>/03-plan-bilibili/README.md
+  ```
+
+### 7. 落盘归档与状态变更
+
+- 将上述蓝图写入：`content-library/<epNN-slug>/03-plan-bilibili/README.md`。
+- 头部 frontmatter 置 `status: draft`（待人工评审通过后方可改为 `approved`）。
+- 更新 `content-library/PIPELINE.md` 看板：该期 03 B站视听列置为 `draft`。
+
+### 8. 触发判断层评审门 (Review Gate)
+
+提示用户：
+> “B站视听编排蓝图已落盘归档至 `03-plan-bilibili/README.md` 并生成了结构化校验块。
+> 请通过调用 `/meta/judgment-layer(判断层评审)` 对本产物进行 CHAI 规则质量评审。
+> 评审通过且看板标为 `approved` 后，可执行 `/04-script-draft` 进入脚本撰写阶段。”
+
+---
+
+## 关联文件
+
+- 角色：`shared/roles/content/visual-planner(视听策划师).md`
+- 上游：`02-content-planning (内容策划).md`
+- 下游：`04-script-draft (脚本撰写).md`

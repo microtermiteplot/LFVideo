@@ -1,0 +1,690 @@
+{
+  "theme": "flat-motion-graphics",
+  "cuts": [
+    {
+      "id": "scene-1",
+      "source": "",
+      "type": "intro_scene",
+      "in_seconds": 0.0,
+      "out_seconds": 10.367,
+      "title": "代码即视频",
+      "subtitle": "如何用 100 行 React 编译卡点与图表动效？",
+      "background": "particles"
+    },
+    {
+      "id": "scene-2",
+      "source": "",
+      "type": "timeline_scene",
+      "in_seconds": 10.367,
+      "out_seconds": 17.733,
+      "eyebrow": "底层机制",
+      "title": "Frame 与 Seconds 的数学映射",
+      "events": [
+        {
+          "year": "0",
+          "title": "起始帧",
+          "desc": "Frame = 0",
+          "icon": "⏱️"
+        },
+        {
+          "year": "1s",
+          "title": "30帧",
+          "desc": "1秒 @ 30fps",
+          "icon": "🎬"
+        },
+        {
+          "year": "2s",
+          "title": "60帧",
+          "desc": "2秒 @ 30fps",
+          "icon": "⏯️"
+        },
+        {
+          "year": "4s",
+          "title": "120帧",
+          "desc": "useCurrentFrame() 返回值",
+          "icon": "🎯"
+        }
+      ],
+      "background": "grid"
+    },
+    {
+      "id": "scene-3",
+      "source": "",
+      "type": "concept_scene",
+      "in_seconds": 17.733,
+      "out_seconds": 24.733,
+      "eyebrow": "翻车现场",
+      "title": "SSR 渲染的致命陷阱",
+      "items": [
+        {
+          "label": "ERROR",
+          "title": "window is not defined",
+          "desc": "Node 端无 DOM 环境，立即崩溃",
+          "icon": "💥"
+        },
+        {
+          "label": "ROOT CAUSE",
+          "title": "Puppeteer 预渲染阶段",
+          "desc": "Remotion SSR 截图时组件崩溃",
+          "icon": "🔍"
+        },
+        {
+          "label": "IMPACT",
+          "title": "编译流程中断",
+          "desc": "npx remotion render 红屏阻断",
+          "icon": "🚫"
+        }
+      ],
+      "background": "gradient"
+    },
+    {
+      "id": "scene-4",
+      "source": "",
+      "type": "table_scene",
+      "in_seconds": 24.733,
+      "out_seconds": 31.767,
+      "eyebrow": "被动约束",
+      "title": "MDC Rules 规则降维打击",
+      "headers": [
+        "评估维度",
+        "❌ 无规则约束",
+        "✅ 加载 MDC Rules"
+      ],
+      "rows": [
+        {
+          "feature": "开发心智",
+          "cursor": "人盯代码，容易遗忘",
+          "windsurf": "规则自动把关，无感守卫",
+          "win": "windsurf"
+        },
+        {
+          "feature": "AI 自愈率",
+          "cursor": "4-5 轮循环报错崩溃",
+          "windsurf": "一次性直接编译通过",
+          "win": "windsurf"
+        },
+        {
+          "feature": "长期收益",
+          "cursor": "无沉淀，无法复用",
+          "windsurf": "形成技术资产，多项目共享",
+          "win": "windsurf"
+        }
+      ],
+      "background": "gradient"
+    },
+    {
+      "id": "scene-5",
+      "source": "",
+      "type": "outro_scene",
+      "in_seconds": 31.767,
+      "out_seconds": 37.9,
+      "headline": "掌握代码即视频，后期效率提升百倍",
+      "cta": "关注 · 一起验证 AI IDE 的真实能力",
+      "background": "gradient"
+    }
+  ],
+  "overlays": [
+    {
+      "type": "provider_chip",
+      "in_seconds": 1.0,
+      "out_seconds": 36.9,
+      "providers": [
+        "remotion",
+        "react",
+        "whisperx"
+      ]
+    }
+  ],
+  "captions": [
+    {
+      "word": "你",
+      "startMs": 0,
+      "endMs": 240
+    },
+    {
+      "word": "还",
+      "startMs": 240,
+      "endMs": 480
+    },
+    {
+      "word": "在",
+      "startMs": 480,
+      "endMs": 720
+    },
+    {
+      "word": "用",
+      "startMs": 720,
+      "endMs": 960
+    },
+    {
+      "word": "PR、",
+      "startMs": 960,
+      "endMs": 1089
+    },
+    {
+      "word": "AE",
+      "startMs": 1390,
+      "endMs": 1520
+    },
+    {
+      "word": "一",
+      "startMs": 1520,
+      "endMs": 1760
+    },
+    {
+      "word": "帧",
+      "startMs": 1760,
+      "endMs": 2000
+    },
+    {
+      "word": "一",
+      "startMs": 2000,
+      "endMs": 2240
+    },
+    {
+      "word": "帧",
+      "startMs": 2240,
+      "endMs": 2480
+    },
+    {
+      "word": "地",
+      "startMs": 2480,
+      "endMs": 2720
+    },
+    {
+      "word": "剪",
+      "startMs": 2720,
+      "endMs": 2960
+    },
+    {
+      "word": "视",
+      "startMs": 2960,
+      "endMs": 3200
+    },
+    {
+      "word": "频",
+      "startMs": 3200,
+      "endMs": 3440
+    },
+    {
+      "word": "吗？",
+      "startMs": 3440,
+      "endMs": 3680
+    },
+    {
+      "word": "停。",
+      "startMs": 4980,
+      "endMs": 5220
+    },
+    {
+      "word": "今",
+      "startMs": 6520,
+      "endMs": 6760
+    },
+    {
+      "word": "天",
+      "startMs": 6760,
+      "endMs": 7000
+    },
+    {
+      "word": "我",
+      "startMs": 7000,
+      "endMs": 7240
+    },
+    {
+      "word": "要",
+      "startMs": 7240,
+      "endMs": 7480
+    },
+    {
+      "word": "告",
+      "startMs": 7480,
+      "endMs": 7720
+    },
+    {
+      "word": "诉",
+      "startMs": 7720,
+      "endMs": 7960
+    },
+    {
+      "word": "你",
+      "startMs": 7960,
+      "endMs": 8200
+    },
+    {
+      "word": "一",
+      "startMs": 8200,
+      "endMs": 8440
+    },
+    {
+      "word": "个",
+      "startMs": 8440,
+      "endMs": 8680
+    },
+    {
+      "word": "完",
+      "startMs": 8680,
+      "endMs": 8920
+    },
+    {
+      "word": "全",
+      "startMs": 8920,
+      "endMs": 9160
+    },
+    {
+      "word": "不",
+      "startMs": 9160,
+      "endMs": 9400
+    },
+    {
+      "word": "同",
+      "startMs": 9400,
+      "endMs": 9640
+    },
+    {
+      "word": "的",
+      "startMs": 9640,
+      "endMs": 9880
+    },
+    {
+      "word": "思",
+      "startMs": 9880,
+      "endMs": 10120
+    },
+    {
+      "word": "路...",
+      "startMs": 10120,
+      "endMs": 10360
+    },
+    {
+      "word": "先",
+      "startMs": 10366,
+      "endMs": 10606
+    },
+    {
+      "word": "搞",
+      "startMs": 10606,
+      "endMs": 10846
+    },
+    {
+      "word": "清",
+      "startMs": 10846,
+      "endMs": 11086
+    },
+    {
+      "word": "楚",
+      "startMs": 11086,
+      "endMs": 11326
+    },
+    {
+      "word": "Remotion",
+      "startMs": 11326,
+      "endMs": 11546
+    },
+    {
+      "word": "的",
+      "startMs": 11546,
+      "endMs": 11786
+    },
+    {
+      "word": "核",
+      "startMs": 11786,
+      "endMs": 12026
+    },
+    {
+      "word": "心",
+      "startMs": 12026,
+      "endMs": 12266
+    },
+    {
+      "word": "机",
+      "startMs": 12266,
+      "endMs": 12506
+    },
+    {
+      "word": "制。",
+      "startMs": 12506,
+      "endMs": 12746
+    },
+    {
+      "word": "视",
+      "startMs": 14046,
+      "endMs": 14286
+    },
+    {
+      "word": "频",
+      "startMs": 14286,
+      "endMs": 14526
+    },
+    {
+      "word": "的",
+      "startMs": 14526,
+      "endMs": 14766
+    },
+    {
+      "word": "本",
+      "startMs": 14766,
+      "endMs": 15006
+    },
+    {
+      "word": "质",
+      "startMs": 15006,
+      "endMs": 15246
+    },
+    {
+      "word": "是",
+      "startMs": 15246,
+      "endMs": 15486
+    },
+    {
+      "word": "什",
+      "startMs": 15486,
+      "endMs": 15726
+    },
+    {
+      "word": "么？",
+      "startMs": 15726,
+      "endMs": 15966
+    },
+    {
+      "word": "是",
+      "startMs": 17266,
+      "endMs": 17506
+    },
+    {
+      "word": "帧...",
+      "startMs": 17506,
+      "endMs": 17746
+    },
+    {
+      "word": "好，",
+      "startMs": 17733,
+      "endMs": 17973
+    },
+    {
+      "word": "原",
+      "startMs": 18573,
+      "endMs": 18813
+    },
+    {
+      "word": "理",
+      "startMs": 18813,
+      "endMs": 19053
+    },
+    {
+      "word": "明",
+      "startMs": 19053,
+      "endMs": 19293
+    },
+    {
+      "word": "白",
+      "startMs": 19293,
+      "endMs": 19533
+    },
+    {
+      "word": "了，",
+      "startMs": 19533,
+      "endMs": 19773
+    },
+    {
+      "word": "开",
+      "startMs": 20373,
+      "endMs": 20613
+    },
+    {
+      "word": "始",
+      "startMs": 20613,
+      "endMs": 20853
+    },
+    {
+      "word": "实",
+      "startMs": 20853,
+      "endMs": 21093
+    },
+    {
+      "word": "操。",
+      "startMs": 21093,
+      "endMs": 21333
+    },
+    {
+      "word": "你",
+      "startMs": 22633,
+      "endMs": 22873
+    },
+    {
+      "word": "让",
+      "startMs": 22873,
+      "endMs": 23113
+    },
+    {
+      "word": "Cursor",
+      "startMs": 23113,
+      "endMs": 23303
+    },
+    {
+      "word": "写",
+      "startMs": 23303,
+      "endMs": 23543
+    },
+    {
+      "word": "一",
+      "startMs": 23543,
+      "endMs": 23783
+    },
+    {
+      "word": "个",
+      "startMs": 23783,
+      "endMs": 24023
+    },
+    {
+      "word": "Remotion",
+      "startMs": 24023,
+      "endMs": 24243
+    },
+    {
+      "word": "组",
+      "startMs": 24243,
+      "endMs": 24483
+    },
+    {
+      "word": "件...",
+      "startMs": 24483,
+      "endMs": 24723
+    },
+    {
+      "word": "传",
+      "startMs": 24733,
+      "endMs": 24973
+    },
+    {
+      "word": "统",
+      "startMs": 24973,
+      "endMs": 25213
+    },
+    {
+      "word": "解",
+      "startMs": 25213,
+      "endMs": 25453
+    },
+    {
+      "word": "法？",
+      "startMs": 25453,
+      "endMs": 25693
+    },
+    {
+      "word": "手",
+      "startMs": 26993,
+      "endMs": 27233
+    },
+    {
+      "word": "动",
+      "startMs": 27233,
+      "endMs": 27473
+    },
+    {
+      "word": "改",
+      "startMs": 27473,
+      "endMs": 27713
+    },
+    {
+      "word": "代",
+      "startMs": 27713,
+      "endMs": 27953
+    },
+    {
+      "word": "码，",
+      "startMs": 27953,
+      "endMs": 28193
+    },
+    {
+      "word": "加",
+      "startMs": 28793,
+      "endMs": 29033
+    },
+    {
+      "word": "守",
+      "startMs": 29033,
+      "endMs": 29273
+    },
+    {
+      "word": "卫。",
+      "startMs": 29273,
+      "endMs": 29513
+    },
+    {
+      "word": "但",
+      "startMs": 30813,
+      "endMs": 31053
+    },
+    {
+      "word": "这",
+      "startMs": 31053,
+      "endMs": 31293
+    },
+    {
+      "word": "很",
+      "startMs": 31293,
+      "endMs": 31533
+    },
+    {
+      "word": "蠢...",
+      "startMs": 31533,
+      "endMs": 31773
+    },
+    {
+      "word": "掌",
+      "startMs": 31766,
+      "endMs": 32006
+    },
+    {
+      "word": "握",
+      "startMs": 32006,
+      "endMs": 32246
+    },
+    {
+      "word": "这",
+      "startMs": 32246,
+      "endMs": 32486
+    },
+    {
+      "word": "套",
+      "startMs": 32486,
+      "endMs": 32726
+    },
+    {
+      "word": "代",
+      "startMs": 32726,
+      "endMs": 32966
+    },
+    {
+      "word": "码",
+      "startMs": 32966,
+      "endMs": 33206
+    },
+    {
+      "word": "即",
+      "startMs": 33206,
+      "endMs": 33446
+    },
+    {
+      "word": "视",
+      "startMs": 33446,
+      "endMs": 33686
+    },
+    {
+      "word": "频",
+      "startMs": 33686,
+      "endMs": 33926
+    },
+    {
+      "word": "的",
+      "startMs": 33926,
+      "endMs": 34166
+    },
+    {
+      "word": "流",
+      "startMs": 34166,
+      "endMs": 34406
+    },
+    {
+      "word": "程，",
+      "startMs": 34406,
+      "endMs": 34646
+    },
+    {
+      "word": "你",
+      "startMs": 35246,
+      "endMs": 35486
+    },
+    {
+      "word": "的",
+      "startMs": 35486,
+      "endMs": 35726
+    },
+    {
+      "word": "后",
+      "startMs": 35726,
+      "endMs": 35966
+    },
+    {
+      "word": "期",
+      "startMs": 35966,
+      "endMs": 36206
+    },
+    {
+      "word": "效",
+      "startMs": 36206,
+      "endMs": 36446
+    },
+    {
+      "word": "率",
+      "startMs": 36446,
+      "endMs": 36686
+    },
+    {
+      "word": "能",
+      "startMs": 36686,
+      "endMs": 36926
+    },
+    {
+      "word": "提",
+      "startMs": 36926,
+      "endMs": 37166
+    },
+    {
+      "word": "升",
+      "startMs": 37166,
+      "endMs": 37406
+    },
+    {
+      "word": "百",
+      "startMs": 37406,
+      "endMs": 37646
+    },
+    {
+      "word": "倍...",
+      "startMs": 37646,
+      "endMs": 37886
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ai-ide-workflows/schemas/01-topic",
+  "title": "Topic Analysis Schema",
+  "description": "Schema for validating the 01-topic structured block",
+  "type": "object",
+  "required": [
+    "title_candidates",
+    "audience",
+    "feasibility",
+    "operation_layer",
+    "judgment_layer",
+    "ai_limitations"
+  ],
+  "properties": {
+    "title_candidates": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 3,
+      "description": "At least 3 high-quality title candidates with hook types"
+    },
+    "audience": {
+      "type": "string",
+      "description": "Target primary and secondary audience"
+    },
+    "feasibility": {
+      "type": "string",
+      "enum": ["yes", "no", "partial"],
+      "description": "Whether AI can actually achieve this scene"
+    },
+    "operation_layer": {
+      "type": "string",
+      "description": "What the user will do (the mechanics of the demo)"
+    },
+    "judgment_layer": {
+      "type": "string",
+      "description": "The decision-making layer, constraints, and boundaries"
+    },
+    "ai_limitations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "What the AI *cannot* do or where it will fail in this demo"
+    }
+  },
+  "additionalProperties": false
+}
