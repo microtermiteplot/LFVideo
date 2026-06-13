@@ -96,9 +96,15 @@ interface VRMModelProps {
   captions?: WordCaption[];
   /** vertical offset to frame the upper body in the panel */
   modelY?: number;
+  /** horizontal offset; positive shifts the host toward the right edge */
+  modelX?: number;
 }
 
-const VRMModel: React.FC<VRMModelProps> = ({ captions, modelY = -0.95 }) => {
+const VRMModel: React.FC<VRMModelProps> = ({
+  captions,
+  modelY = -0.95,
+  modelX = 0,
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   // R3F render is on-demand (frameloop="never") while Remotion renders, so we
@@ -210,7 +216,7 @@ const VRMModel: React.FC<VRMModelProps> = ({ captions, modelY = -0.95 }) => {
 
   return (
     <>
-      {vrm && <primitive object={vrm.scene} position={[0, modelY, 0]} />}
+      {vrm && <primitive object={vrm.scene} position={[modelX, modelY, 0]} />}
     </>
   );
 };
@@ -222,11 +228,17 @@ export interface VRMAvatarProps {
   captions?: WordCaption[];
   /** Panel width as a fraction of the composition width. */
   widthFraction?: number;
+  /** Camera distance from the host; larger = host appears smaller. */
+  cameraDistance?: number;
+  /** Horizontal model offset; positive shifts the host toward the right edge. */
+  modelX?: number;
 }
 
 export const VRMAvatar: React.FC<VRMAvatarProps> = ({
   captions,
-  widthFraction = 0.3,
+  widthFraction = 0.24,
+  cameraDistance = 2.55,
+  modelX = 0.16,
 }) => {
   const { width, height } = useVideoConfig();
   const panelW = Math.round(width * widthFraction);
@@ -248,12 +260,12 @@ export const VRMAvatar: React.FC<VRMAvatarProps> = ({
           height={panelH}
           style={{ background: "transparent" }}
           gl={{ alpha: true, preserveDrawingBuffer: true }}
-          camera={{ fov: 30, near: 0.1, far: 20, position: [0, 0, 2.2] }}
+          camera={{ fov: 30, near: 0.1, far: 20, position: [0, 0, cameraDistance] }}
         >
           <ambientLight intensity={1.1} />
           <directionalLight position={[1, 2, 2]} intensity={1.4} />
           <directionalLight position={[-1.5, 1, 1.5]} intensity={0.6} />
-          <VRMModel captions={captions} />
+          <VRMModel captions={captions} modelX={modelX} />
         </ThreeCanvas>
       </div>
     </AbsoluteFill>

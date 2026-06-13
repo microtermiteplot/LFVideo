@@ -321,8 +321,12 @@ interface AudioConfig {
 interface AvatarConfig {
   /** Show the VRM digital host (right-side half-body PiP). */
   enabled?: boolean;
-  /** Panel width as a fraction of the composition width (default 0.3). */
+  /** Panel width as a fraction of the composition width (default 0.24). */
   widthFraction?: number;
+  /** Camera distance from the host; larger = host appears smaller. */
+  cameraDistance?: number;
+  /** Horizontal model offset; positive shifts the host toward the right edge. */
+  modelX?: number;
 }
 
 export interface ExplainerProps {
@@ -933,7 +937,12 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
 
       {/* Layer 2.5: Digital host (VRM half-body PiP, right side) */}
       {avatar?.enabled && (
-        <VRMAvatar captions={captions} widthFraction={avatar.widthFraction} />
+        <VRMAvatar
+          captions={captions}
+          widthFraction={avatar.widthFraction}
+          cameraDistance={avatar.cameraDistance}
+          modelX={avatar.modelX}
+        />
       )}
 
       {/* Layer 3: Captions (word-by-word highlight) */}
