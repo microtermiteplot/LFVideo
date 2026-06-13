@@ -206,49 +206,95 @@ const VRMModel: React.FC<VRMModelProps> = ({
     const timeSec = frame / fps;
     const ms = timeSec * 1000;
 
+    const breath = breathAt(timeSec);
+    const mouth = mouthStateAt(ms, captions);
+    const speaking = mouth.open; // 0..1, drives talking emphasis
+
+    // Slow, mutually-incommensurate phases so the idle never visibly loops.
+    const swayP = (2 * Math.PI * timeSec) / 6.5; // weight-shift phase
+    const sway = Math.sin(swayP);
+    const sway2 = Math.sin((2 * Math.PI * timeSec) / 11); // slower drift
+
     const em = vrm.expressionManager;
     if (em) {
       // Reset mouth visemes, then apply the active one.
       for (const v of VISEMES) em.setValue(v, 0);
-      const mouth = mouthStateAt(ms, captions);
       em.setValue(mouth.viseme, mouth.open);
 
       // Blink.
       em.setValue(VRMExpressionPresetName.Blink, blinkAt(timeSec));
 
-      // Gentle resting smile so the host looks friendly.
-      em.setValue(VRMExpressionPresetName.Happy, 0.12);
+      // Resting smile that breathes slightly so the face is never frozen.
+      em.setValue(
+        VRMExpressionPresetName.Happy,
+        0.12 + Math.sin((2 * Math.PI * timeSec) / 13) * 0.05
+      );
     }
 
-    // Lower the arms from the default T-pose into a natural resting pose.
     const h = vrm.humanoid;
+
+    // Weight shift through the hips with a soft counter-rotation in the spine
+    // (contrapposto), so the whole body sways instead of standing rigid.
+    const hips = h.getNormalizedBoneNode(VRMHumanBoneName.Hips);
+    if (hips) {
+      hips.rotation.y = sway * 0.05 + sway2 * 0.03;
+      hips.rotation.z = sway * 0.02;
+      hips.position.x = sway * 0.012;
+    }
+    const spine = h.getNormalizedBoneNode(VRMHumanBoneName.Spine);
+    if (spine) {
+      spine.rotation.y = -sway * 0.035;
+      spine.rotation.z = -sway * 0.015;
+    }
+
+    // Lower the arms from the default T-pose into a natural rest, with a
+    // sway-driven swing and a small right-arm emphasis gesture while speaking.
     const lUpper = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm);
     const rUpper = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm);
     const lLower = h.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm);
     const rLower = h.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm);
-    const breath = breathAt(timeSec);
     if (lUpper) {
       lUpper.rotation.z = -1.2 - breath * 0.02;
-      lUpper.rotation.y = -0.05;
+      lUpper.rotation.y = -0.05 + sway * 0.05;
+      lUpper.rotation.x = Math.sin(swayP + 0.5) * 0.04;
     }
     if (rUpper) {
       rUpper.rotation.z = 1.2 + breath * 0.02;
-      rUpper.rotation.y = 0.05;
+      rUpper.rotation.y = 0.05 + sway * 0.05;
+      rUpper.rotation.x = Math.sin(swayP + 0.9) * 0.04 + speaking * 0.1;
     }
-    if (lLower) lLower.rotation.z = -0.2;
-    if (rLower) rLower.rotation.z = 0.2;
+    if (lLower) lLower.rotation.z = -0.2 + Math.sin(swayP + 1.1) * 0.03;
+    if (rLower)
+      rLower.rotation.z = 0.2 - Math.sin(swayP + 1.3) * 0.03 - speaking * 0.12;
 
-    // Breathing + subtle idle sway on the upper spine / chest.
+    const lHand = h.getNormalizedBoneNode(VRMHumanBoneName.LeftHand);
+    const rHand = h.getNormalizedBoneNode(VRMHumanBoneName.RightHand);
+    if (lHand) lHand.rotation.z = Math.sin(swayP + 1.6) * 0.06;
+    if (rHand) rHand.rotation.z = -Math.sin(swayP + 1.9) * 0.06;
+
+    // Breathing on the chest.
     const chest =
-      vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Chest) ??
-      vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Spine);
+      h.getNormalizedBoneNode(VRMHumanBoneName.Chest) ??
+      h.getNormalizedBoneNode(VRMHumanBoneName.Spine);
     if (chest) {
       chest.rotation.x = breath * 0.025;
     }
-    const head = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head);
+
+    // Layered head motion + a gentle nod while speaking; the neck follows.
+    const neck = h.getNormalizedBoneNode(VRMHumanBoneName.Neck);
+    if (neck) {
+      neck.rotation.y = sway2 * 0.03;
+      neck.rotation.x = speaking * 0.03;
+    }
+    const head = h.getNormalizedBoneNode(VRMHumanBoneName.Head);
     if (head) {
-      head.rotation.z = Math.sin((2 * Math.PI * timeSec) / 7) * 0.02;
-      head.rotation.y = Math.sin((2 * Math.PI * timeSec) / 9) * 0.03;
+      head.rotation.z =
+        Math.sin((2 * Math.PI * timeSec) / 7) * 0.025 - sway * 0.02;
+      head.rotation.y =
+        Math.sin((2 * Math.PI * timeSec) / 9) * 0.04 + sway2 * 0.04;
+      head.rotation.x =
+        Math.sin((2 * Math.PI * timeSec) / 5.5) * 0.02 +
+        Math.sin((2 * Math.PI * timeSec) / 1.7) * speaking * 0.05;
     }
 
     // Apply expression morphs + skeleton update for this frame. Keep spring
