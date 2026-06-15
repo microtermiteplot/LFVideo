@@ -1,12 +1,14 @@
 ---
 stage: 03-video-planning-bilibili
-status: approved
+status: draft
 source_workflow: /03-video-planning-bilibili
 upstream_inputs:
-  - 02-plan/README.md (status: approved)
-  - 02-plan/tutorial.final.md (status: approved)
+  - 02-plan/README.md (status: draft)
+  - 02-plan/tutorial.final.md (status: draft)
   - shared/docs/remotion-spec.md
 ---
+
+> ⚠️ **待重做**：上游 `02-plan/tutorial.final.md` 已按分期收敛为"渲染引擎"单一主题（移除选型矩阵/流程即代码）。本分镜基于旧的"大而全"版本，需按收敛后的新结构重做。
 
 # ep02 B站视听编排蓝图
 

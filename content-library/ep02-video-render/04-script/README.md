@@ -1,14 +1,16 @@
 ---
 stage: 04-script
 platform: bilibili
-status: approved
+status: draft
 source_workflow: /04-script-draft
 upstream_inputs:
-  - 02-plan/README.md (status: approved)
-  - 02-plan/tutorial.final.md (status: approved)
-  - 03-plan-bilibili/README.md (status: approved)
+  - 02-plan/README.md (status: draft)
+  - 02-plan/tutorial.final.md (status: draft)
+  - 03-plan-bilibili/README.md (status: draft)
   - shared/docs/remotion-spec.md
 ---
+
+> ⚠️ **待重做**：上游 `02-plan/tutorial.final.md` 已按分期收敛为"渲染引擎"单一主题（移除选型矩阵/流程即代码）。本脚本基于旧的"大而全"版本，需按收敛后的新「必讲要点覆盖清单」重写。
 
 # ep02 视频脚本：《代码即视频（Video-as-Code）：把一条视频做成可编译、可复用、可被 AI 接管的工程》
 

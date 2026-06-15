@@ -3,7 +3,7 @@ stage: 05-b-roll-recording
 status: suspended
 source_workflow: /05-b-roll-recording
 upstream_inputs:
-  - 04-script/README.md (status: approved)
+  - 04-script/README.md (status: draft)
 ---
 
 # ep02 B 轨录屏（05-b-roll）

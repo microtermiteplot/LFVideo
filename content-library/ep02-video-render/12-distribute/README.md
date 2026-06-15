@@ -3,8 +3,8 @@ stage: 12-distribute-adapt
 status: suspended
 source_workflow: /12-distribute-adapt
 upstream_inputs:
-  - 04-script/README.md (status: approved)
-  - 07-assembly/README.md (status: approved)
+  - 04-script/README.md (status: draft)
+  - 07-assembly/README.md (status: draft)
 ---
 
 > ⏸️ **本阶段已挂起（suspended）**：当前专注视频本体（04→07 渲染主线），其他平台分发暂不推进。
