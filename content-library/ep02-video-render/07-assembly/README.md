@@ -1,11 +1,11 @@
 ---
 stage: 07-video-assembly
-status: approved
+status: draft
 source_workflow: /07-video-assembly
 upstream_inputs:
-  - 04-script/README.md (status: approved)
+  - 04-script/README.md (status: draft)
   - 05-b-roll/README.md (status: suspended — A轨兜底)
-  - 06-tts/assets/ (status: approved)
+  - 06-tts/assets/ (status: draft)
   - shared/docs/remotion-spec.md
 ---
 

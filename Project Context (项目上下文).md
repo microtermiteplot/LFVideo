@@ -1,8 +1,8 @@
 # 项目上下文记录
 
-> 用于跨设备/跨会话继续工作，新设备上直接把这份文档给AI读取即可恢复上下文。
-> 详细内容规划见 [Content Plan (内容计划).md](./Content%20Plan%20(%E5%86%85%E5%AE%B9%E8%AE%A1%E5%88%92).md) | 风险分析见 [Risk and Moat (风险与护城河).md](./Risk%20and%20Moat%20(%E9%A3%8E%E9%99%A9%E4%B8%8E%E6%8A%A4%E5%9F%8E%E6%B2%B3).md)
-> 最后更新：2026.05.28
+> 跨设备 / 跨会话的「首要真相源」。新环境上把本文件交给 AI 阅读即可恢复上下文。
+> 配套文档：内容路线见 [Content Plan (内容计划).md](./Content%20Plan%20(%E5%86%85%E5%AE%B9%E8%AE%A1%E5%88%92).md)；架构细节见 [ARCHITECTURE.md](./ARCHITECTURE.md)；协作铁律见 [AGENT_GUIDE.md](./AGENT_GUIDE.md)。
+> 最后更新：2026.06.15
 
 ---
 
@@ -10,167 +10,179 @@
 
 | 项 | 值 |
 |----|---|
-| 项目名 | ai-ide-workflows |
-| 性质 | 内容创作项目（教程视频 + GitHub配套资源） |
-| 当前阶段 | 内容生产工作流设计中（选题→脚本→视频组装→分发） |
-| 下一步 | 调研验证 Remotion 流水线（用第1期 A 轨试跑）|
+| 仓库 | `DomeButlerBang/LFVideo` |
+| 性质 | 硬核技术教程**内容频道**项目（视频 + GitHub 配套资源） |
+| 核心打法 | 用 AI IDE 把能力编排成**可复用的自动化工作流**；并以频道自身的「视频生产线」作为头号实战样板（Dogfooding） |
+| 当前阶段 | 系列《Vibe Coding 造一条自动化视频生产线》生产中；同步完善流水线自动化能力与成片质量 |
+| 当前期 | `ep02-video-render`（推进到 08 字幕 `draft`，详见 [content-library/PIPELINE.md](./content-library/PIPELINE.md)） |
+| 下一步 | 收尾 ep02（字幕/组装质量），按 ep02→03→04→05→06 顺序边做边迭代工作流与成片质量；ep01 总览最后制作 |
 
 ---
 
 ## 核心定位
 
-> **"用 AI IDE 构建工作流，解决现实世界中的各类实际场景问题"**
+> **「用 AI IDE 编排可复用工作流，去解决真实场景问题——并把整条流水线本身做成最好的证据。」**
 
-- 不止于试用 Cursor / Windsurf 的单点功能，而是把它们编排成**可复用的工作流**去交付真实成果
-- **核心是验证成功的应用场景**：挑 AI 真能做成的事，把"怎么搭一套能复用的工作流"讲透
-- **故事线**：场景工作流地图型 — "Cursor/Windsurf 能搭建哪些现实工作流？我们一一验证、沉淀成可复用方案"，按场景分类展开，最终形成完整的 AI IDE 场景工作流地图
-
----
-
-## 内容方法论
-
-每期内容回答一个核心问题：
-
-> **这件事，AI IDE 能做成吗？怎么做才能做到能复用？**
-
-**选题是正向的**：我们只挑 AI 真能做成的场景，把"怎么用好它"讲透。不做以黑某个功能为目的的选题。
-
-围绕这个问题，每期尽量包含两层：
-
-1. **操作层**：具体怎么做（步骤、Prompt、流程），观众照着能复现。
-2. **判断层（边界与验收）**：什么时候该用 / 不该用、怎么验收结果、哪一步 AI 会掉链子、怎么绕过去。
-
-> 注：判断层不是"评判 AI 成败"，而是"**用好它的边界说明**"。即便是成功场景，也**必须如实呈现该场景下的边界与坑**——什么前提下才成立、AI 在哪一步需要人接管。这是频道与"炫技型/软广型" AI 内容的根本区别：我们给的是能落地、能避坑的真经验，不是滤镜下的 demo。
+- 不停留在 Cursor/Windsurf/Devin 的单点功能试用，而是把它们编排成**能交付真实成果的工作流**。
+- **正向选题**：只挑 AI 真能做成的场景，把「怎么做才能稳、能复用」讲透；不做以黑某功能为目的的选题。
+- **头号样板就是本仓库自己**：本频道用一套「角色 × 工作流 × 状态机」驱动的视频生产线（`OpenMontage` + Remotion）来生产关于「如何用 AI IDE 搭这种流水线」的内容——**以行证言（Dogfooding）**。
 
 ---
 
-## 主工具选择
+## 内容方法论（操作层 + 判断层）
 
-| 工具 | 定位 | 理由 |
-|------|------|------|
-| **Cursor** | 主线 | 中国用户最多（50万+），可控性强，步骤清晰可见 |
-| **Windsurf 2.0** | 副线/对比 | 2026.04已整合Devin，中文内容空白大 |
+每期回答一个问题：**这件事 AI IDE 能做成吗？怎么做才能稳、能复用？**
 
-**关键判断**：即使调用同一底层模型，IDE设计决定70%体验（上下文注入、任务规划、错误恢复）。
+1. **操作层**：具体步骤、Prompt、配置、命令，观众照着能复现。
+2. **判断层（边界与验收 / 避坑）**：什么前提下成立、哪一步 AI 易掉链子需要人接管、怎么验收结果。
+
+> 判断层**不是**「吐槽 AI 做不好」，而是「用好它的边界说明」。即便 100% 成功的场景，也必须如实交代边界与坑。这是与「炫技/软广号」的根本区别。
+> 写作纪律：**反 FUD / 反噱头**——强调工程结构与可复现性，不夸大常规环境坑，不以代码行数当卖点（脚本 Schema 内置 `anti_hype_forbidden` 噱头黑名单做机器拦截）。
 
 ---
 
-## 视频制作工具栈
+## 系统架构（单运行时核心）
 
-用 AI IDE + 程序化视频工具自动化后期，减少人工干预。**用 AI IDE 生产 AI IDE 内容**本身就是频道母题的演示。
+整套生产线采用 **「全收敛单运行时（Fully Converged Single-Runtime）」**：以 `OpenMontage/` 为核心，Python 工具箱负责素材/音频/字幕，React 19 + Remotion 渲染器负责成片，两端用 YAML/JSON 配置串联。详见 [ARCHITECTURE.md](./ARCHITECTURE.md)。
 
-| 工具 | 用途 | 自动化程度 |
-|------|------|-----------|
-| **Remotion** | React 代码生成视频（片头/字幕/动画/多尺寸） | 全自动渲染 |
-| **Remotion Skills** | 在 Windsurf 里自然语言生成视频组件 | 半自动 |
-| **Whisper** | 字幕时间轴生成 | 全自动 |
-| **FFmpeg** | 底层音视频处理 | 全自动 |
+### 1. OpenMontage —— 视频「编译器」内核（vendored，AGPLv3）
 
-**两轨制作**：A 轨（概念/对比/总结型）脚本直接 Remotion 渲染成片，几乎零录屏；B 轨（实操演示型）真实录屏 + Remotion 套模板。详见 Content Plan「两轨制作」。
+| 层 | 位置 | 职责 |
+|----|------|------|
+| Python 工具箱 | `OpenMontage/tools/`（`analysis/ audio/ avatar/ capture/ character/ enhancement/ graphics/ publishers/ subtitle/ video/`，100+ 模块） | 转录、混音、录屏、代码美化、图表、超分、拼剪等原子能力 |
+| 调度/校验库 | `OpenMontage/lib/`（`pipeline_loader.py`、`verify_scene_pacing.py`、`scoring.py`、`checkpoint.py` 等） | 管道加载、声画节奏校验、断点续跑 |
+| 管道定义 | `OpenMontage/pipeline_defs/*.yaml`（13 条：`animated-explainer`、`talking-head`、`hybrid`、`screen-demo`、`cinematic`、`clip-factory`…） | 「流程即代码」的可执行管道 |
+| 契约/技能 | `OpenMontage/schemas/`、`OpenMontage/skills/` + `.agents|.claude|.cursor/skills/` | 工件/检查点 Schema 与 Agent 技能库 |
+| 渲染编译器 | `OpenMontage/remotion-composer/`（React 19.2 / Remotion 4.0.47x） | 把 cuts/overlays 配置编译为成片 |
 
-> Remotion 个人创作者免费，4+ 员工公司需商业授权。
+### 2. remotion-composer —— React 渲染层
+
+- 主合成 `src/Explainer.tsx` 按 `cut.type` / `overlay.type` 分发场景组件（详见 [SCENE_TYPES.md](./OpenMontage/remotion-composer/SCENE_TYPES.md)）：
+  - **场景**：`text_card`、`hero_title`、`stat_card`、`callout`、`comparison`、`bar_chart`/`line_chart`/`pie_chart`/`kpi_grid`、`progress_bar`、`anime_scene`、`terminal_scene`、`screenshot_scene`，以及直接播放的 `OffthreadVideo`/`Img`。
+  - **合成录屏**：`terminal_scene`（终端模拟）与 `screenshot_scene`（截图 + 脚本化光标/打字/气泡叠加）可在 15–30s 的聚焦演示里免去真实录屏。
+  - **VRM 数字主持人**：`src/components/VRMAvatar.tsx` 全身渲染一次、各场景按 2D crop 预设取景（corner/bust/full/presenter）；口型由 Whisper 字级字幕 + 拼音韵母驱动，帧确定。
+- 自适应自愈：媒体组件做 `src` 空校验与降级占位，避免预览红屏。
+- 渲染规范：**1080p（1920×1080 @ 30fps）**，见 [shared/docs/remotion-spec.md](./shared/docs/remotion-spec.md)。
+
+### 3. 混合生产线（TAD-01）
+
+技术教程必须 100% 真实，因此采用 **「人录真实 IDE 录屏（B 轨）+ OpenMontage 组件编译器」** 的混合折中：
+
+```
+[人工] 高保真 IDE 录屏 (Raw MP4) ─┐
+                                  ▼
+[Agent] WhisperX 字级转录 + 智能混音 ─► remotion-composer（载入场景组件 + 主题皮肤）─► 成片 MP4
+[Agent] YAML/JSON 配置生成 ───────────┘
+```
+
+- A 轨（概念/解说）：脚本 → Remotion 组件 → 直接渲染，近全自动。
+- B 轨（实操演示）：真实录屏 + 真人/TTS 口播，Remotion 只做片头/转场/字幕/多尺寸。
+- 明确排除会摧毁可信度的能力：数字人对口型 `talking_head`/`lip_sync`、AI 绘界面 `flux_image`、卡通角色动画（见 [ep02 CONTENTLIB](./content-library/ep02-video-render/CONTENTLIB.md)）。
+
+---
+
+## 内容生产状态机（13 阶段 + 校验门）
+
+每期都走同一条标准化流水线，工作流定义在 `.devin/workflows/`，产物落 `content-library/epNN-slug/` 的对应阶段目录：
+
+```
+01 选题 → 02 策划 → 03 B站视听 → 04 脚本(SSOT) → 05 B轨录屏⏸ → 06 TTS
+   → 07 组装 → 08 字幕 → 09 BGM⏸ → 10 封面⏸ → 11 质检⏸ → 12 分发⏸ → 13 归档⏸
+```
+
+- **看板唯一真相**：[content-library/PIPELINE.md](./content-library/PIPELINE.md) 记录「所有期 × 13 阶段」状态（`- / draft / reviewed / approved / suspended / superseded`）。每推进一阶段必须更新；重启时定位到第一个 `-`/`draft` 续跑。
+- **L0.5 单核校验门**：阶段置 `approved` 的前置 = **Schema 校验通过 + 人工确认**。
+  - 机器校验 `scripts/pipeline_lint.py`：校验产物尾部 ` ```json ` 结构块是否符合 `shared/schemas/*.json`（01/02/03/04），并做跨阶段防漂移门禁（04 脚本为 SSOT、上游状态一致性、场景数一致、下游标题不触犯噱头黑名单）。
+  - 第二核「判断层评审（CHAI 质量门）」当前**已挂起**，角色文件保留，恢复时去掉提示即可。
+- **两库分离**：`ideas/`（脑暴，格式随意）vs `content-library/`（成品，按阶段落盘 + YAML frontmatter 标 `stage`/`status`）。
+
+---
+
+## 角色体系（shared/roles/）
+
+> **角色 = 思考视角（system prompt）；工作流 = 步骤模板（user prompt）；frontmatter + 看板 = 状态机。** 三者组合即「可被 Agent 接管 / 易 API 化」的工作流。详见 [shared/roles/README](./shared/roles/README%20(%E8%A7%92%E8%89%B2%E4%BD%93%E7%B3%BB%E8%AF%B4%E6%98%8E).md)。
+
+| 线 | 角色 | 状态 |
+|----|------|------|
+| 视频生产线（12） | 选题分析师 / 内容策划师 / 视听策划师 / 文案撰稿人 / 屏幕录制导演 / 语音合成工程师 / 视频工程师 / 字幕编辑 / 音频混音师 / 封面设计师 / 质检工程师 / 分发助手 | ✅ 可用 |
+| 实战内容线（4） | 产品经理 / 架构师 / 执行工程师 / 代码审查员 | 🚧 占位 |
+| 通用判断层（1） | 判断层评审（CHAI 硬核质量门） | ⏸️ 已挂起 |
+
+多 IDE 适配（single source of truth = `shared/roles/`）：本仓库根用 `.devin/`（`rules/` 常驻规则 + `workflows/` 步骤）；`OpenMontage/` 子工程另带 `.cursor/ .claude/ .agents/` 技能。
 
 ---
 
 ## 仓库结构
 
 ```text
-ai-ide-workflows/
-├── Project Context (项目上下文).md    # 本文件，核心上下文
-├── Content Plan (内容计划).md           # 内容策略详细规划
-├── Risk and Moat (风险与护城河).md      # 风险与壁垒分析
-├── README (项目说明).md                 # 项目总介绍（中英双语）
-│
-├── cursor/                      # Cursor系列
-│   ├── 01-ppt-master/
-│   ├── 02-poster-designer/
-│   ├── 03-data-analyst/
-│   ├── 04-website-builder/
-│   ├── 05-background-agent/
-│   └── 06-automation-hooks/
-│
-├── windsurf/                    # Windsurf系列
-│   ├── 01-agent-intro/
-│   └── 02-vs-cursor/
-│
-├── ideas/                       # 头脑风暴/选题参考库（未定稿，可随意改）
-│   ├── backlog.md               # 候选选题池
-│   └── epNN-slug.md             # 每期脑暴素材
-│
-├── content-library/             # 生产成品库（人工审核后归档）
-│   ├── PIPELINE.md              # 全局看板：所有期 × 4 阶段状态
-│   ├── _decisions/              # 跨期技术/策略决策
-│   └── epNN-slug/               # 每期：01-topic / 02-script / 03-assembly / 04-distribute/
-│
-├── shared/                      # 通用资源
-│   ├── roles/                   # 角色体系（先自用后内容化，详见 shared/roles/README）
-│   ├── prompt-templates/
-│   └── mcp-configs/
-│
-├── .windsurf/                   # Windsurf 工作流 + 常驻规则
-│   ├── workflows/               # 01选题 / 02脚本 / 03视频组装 / 04分发适配
-│   └── rules/                   # 项目上下文 + 角色体系常驻规则
-│
-├── video/                       # Remotion 工程（模板库 + 各期组件）
-│   ├── templates/               # 片头/片尾/转场/字幕/数据卡可复用模板
-│   └── episodes/                # 各期视频组件
-│
-└── .github/
-    └── CONTRIBUTING.md
-```
-
-**每个工作流文件夹标准结构**：
-
-```text
-01-ppt-master/
-├── README.md           # 工作流说明 + 视频链接 + 使用步骤
-├── .cursor/rules/      # 专属Cursor Rules
-├── prompts.md          # 完整Prompt库（分步骤）
-├── examples/           # 示例输出
-└── assets/             # 模板/素材
+LFVideo/
+├── AGENT_GUIDE.md                 # AI 协作铁律（反污染 / 全量重写 / 反噱头）
+├── ARCHITECTURE.md                # 单运行时架构设计
+├── Project Context (项目上下文).md  # 本文件
+├── Content Plan (内容计划).md       # 内容路线与策略
+├── .devin/
+│   ├── rules/                     # 常驻规则（项目上下文 / 角色体系）
+│   └── workflows/                 # 13 阶段工作流（01 选题 … 13 归档）
+├── shared/
+│   ├── roles/                     # 角色库（content/ execution/ meta/）+ README
+│   ├── schemas/                   # 阶段 JSON Schema（01/02/03/04）
+│   └── docs/remotion-spec.md      # Remotion 目标态规范（1080p）
+├── ideas/                         # 脑暴库（backlog / epNN 素材）
+├── content-library/               # 成品库
+│   ├── PIPELINE.md                # 看板：所有期 × 13 阶段（唯一进度真相）
+│   ├── _decisions/                # 跨期决策 + dev-log
+│   └── ep02-video-render/         # 本期（01-topic … 12-distribute + CONTENTLIB）
+├── scripts/
+│   ├── pipeline_lint.py           # L0.5 机器校验（Schema + 防漂移门禁）
+│   └── devin-sync.ps1
+└── OpenMontage/                   # 单运行时核心（vendored，AGPLv3）
+    ├── tools/                     # Python 工具箱（100+ 模块）
+    ├── lib/                       # 调度 / 校验 / 评分 / 断点续跑
+    ├── pipeline_defs/             # 13 条 YAML 管道
+    ├── schemas/ · skills/         # 工件契约 + Agent 技能库
+    └── remotion-composer/         # React 19 / Remotion 渲染编译器
+        ├── src/Explainer.tsx      # 主合成 + cut/overlay 调度
+        ├── src/components/        # 场景组件（含 VRMAvatar）+ charts
+        ├── src/custom-templates/  # theme / primitives / scenes / episodes
+        └── public/                # avatars/*.vrm, demo-props
 ```
 
 ---
 
-## 执行节奏
+## 内容路线图（详见 [content-library/PIPELINE.md](./content-library/PIPELINE.md)）
 
-| 指标 | 目标 |
-|------|------|
-| 单期总投入 | ≤8小时（录制2h + 后期2h + 配套2h + 分发2h） |
-| 更新频率 | 每周1期（前5期），之后可调为10天/期 |
-| 断更红线 | 最长不超过2周无更新 |
-| 核心原则 | **完成度 > 完美度，宁可粗糙也不停更** |
+系列：**《Vibe Coding 造一条自动化视频生产线》**（每期 3–10 分钟，边做边播）
 
----
+| 期 | 标题 | 主题 |
+|----|------|------|
+| ep01-video-agent-overview | 总览 | 系列总览/总结（含技术选型复盘）；最后制作、置顶第 1 期 |
+| ep02-video-render | 视频渲染 | 场景组件系统 + VRM 主持人（**本期**） |
+| ep03-video-subtitle | 字幕匹配 | Whisper 字级时间戳驱动弹跳字幕 |
+| ep04-video-audio | 音频混音 | 智能混音、气口与响度标准化 |
+| ep05-video-pipeline | 工作流构建 | 13 阶段状态机 + Schema 校验门 |
+| ep06-video-orchestrator | 角色编排 | 角色即 Prompt → 多智能体编排（YAML 管道） |
 
-## 当前进度
-
-- [x] 项目定位确定
-- [x] 故事线选定（场景工作流地图型）
-- [x] 内容规划已精简为两期核心（PPT制作 + 自动视频生成）
-- [x] 仓库结构规划完成
-- [x] 项目文档体系建立（Project Context / Content Plan / Risk and Moat）
-- [x] 角色体系骨架建立（`shared/roles/`，10个角色 + README）
-- [x] 内容生产工作流闭环（01选题 / 02脚本 / 03视频组装 / 04分发适配）
-- [x] 视频制作工具栈选型（Remotion 两轨制作）
-- [x] 分发助手角色充实到可用 + 分发策略细化（含抖音/短视频切片）
-- [x] 内容生产流水线落盘机制（ideas 脑暴库 + content-library 成品库 + PIPELINE 看板，L0 全人工审核）
-- [x] Remotion 模板库基建 + 第1期 A 轨试跑（TS 编译/字号/Studio 通过，渲染待跑）
-- [ ] 角色阶段1：内容策划师 + 文案撰稿人充实到可用
-- [ ] ep01 PPT 制作内容（B轨实操）
-- [ ] ep02 自动视频生成内容（A轨 Remotion）
-- [ ] README.md编写
-- [ ] GitHub仓库创建/发布
+> 制作顺序：EP02 → EP06 五期"功能期"先做、迭代质量，EP01 总览/总结最后制作。
 
 ---
 
-## 重要原则（AI助手请记住）
+## 自动化成熟度
 
-1. **如果用户说的不对或走向错误方向，立即提醒，不要顺着走**
-2. 内容架构优先于内容运营，先确定故事线再做漏斗优化
-3. 每期内容包含操作层+判断层；判断层必须如实呈现 AI 做不好的点，不回避短板
-4. GitHub是内容的配套资源仓库，不是主产品；建站暂缓，内容优先
-5. Cursor是主工具，Windsurf是副线/对比工具
-6. 详细策略和市场数据请查阅 [Content Plan (内容计划).md](./Content%20Plan%20(%E5%86%85%E5%AE%B9%E8%AE%A1%E5%88%92).md) 和 [Risk and Moat (风险与护城河).md](./Risk%20and%20Moat%20(%E9%A3%8E%E9%99%A9%E4%B8%8E%E6%8A%A4%E5%9F%8E%E6%B2%B3).md)
+- **L0.5 单核校验（当前）**：Schema 契约校验 + 人工确认；看板手动更新；判断层评审挂起。
+- **L1 半自动（规划）**：选题/策划自动提炼实操并自动跑 Schema 校验。
+- **L2 全自动（规划）**：全链路多角色 Agent 自动校验、评审、流转。
+
+---
+
+## 重要原则（AI 助手请记住）
+
+1. **用户说得不对或方向跑偏，立即提醒，不要顺着走。**
+2. **看板（PIPELINE.md）是进度唯一真相**；`04 脚本`是跨阶段 SSOT，下游不得与之漂移。
+3. 每期必须含**操作层 + 判断层**；判断层如实呈现边界与坑，不回避短板，也不夸大成「巨坑」。
+4. **反噱头 / 反 FUD**：强调工程结构与可复现性，不虚构任何 AIGC 特效；Remotion 无法生成、需真实操作的画面用 `[B 轨占位]` 显式标出。
+5. **Dogfooding**：本仓库的生产线本身就是头号内容素材（角色 × 工作流 × 状态机 = 可 API 化的证据）。
+6. 渲染统一 **1080p @ 30fps**；媒体组件必须做空校验与降级占位。
+7. 文档变更面积 >30% 时**全量重写**，避免增量拼接造成脏数据污染（见 AGENT_GUIDE）。
+8. GitHub 是内容的**配套资源仓库**，不是主产品；内容优先。
 
 ---

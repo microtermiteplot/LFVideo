@@ -1,6 +1,6 @@
 ---
 stage: 02-content-planning
-status: approved
+status: draft
 source_workflow: /02-content-planning
 ---
 

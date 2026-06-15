@@ -95,7 +95,7 @@ video/src/
 │   ├── scenes/      # 场景：IntroScene、ConceptScene、OutroScene
 │   └── index.ts     # 统一出口，episodes 只从这里 import
 ├── episodes/        # 每期内容（频繁新增）
-│   └── ep01-cursor-windsurf/
+│   └── epNN-slug/
 │       ├── data.ts      # 本期纯文案（与排版分离）
 │       └── Episode.tsx  # 组装 scenes，只管"这期讲什么、按什么顺序、各多久"
 └── Root.tsx         # 注册所有 episode 的 Composition

@@ -42,7 +42,7 @@ source_workflow: /01-topic-research
 
 ## 当前期
 
-- **ep01-cursor-windsurf** — AI IDE 三层认知框架（01 已 approved，03 A 轨验证中）
+- **ep02-video-render** — 渲染引擎：代码即视频 + 流程即代码（推进到 08 字幕 `draft`，见 [PIPELINE.md](./PIPELINE.md)）
 
 ## Meta
 
