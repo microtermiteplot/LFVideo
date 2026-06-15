@@ -1,0 +1,59 @@
+---
+trigger: always_on
+---
+
+<!-- AUTO-GENERATED from shared/rules/role-system.md. Do not edit here; edit the source and run `python scripts/sync_rules.py`. -->
+
+# 角色体系调用规则
+
+本项目的角色定义位于 `shared/roles/`。角色是思考视角，Agent 是执行能力；两者结合才构成完整工作流。
+
+## 角色调用方式
+
+当用户要求扮演某个角色、调用某个角色，或任务明显匹配某个角色时：
+
+1. 先读取对应角色文件，理解身份、能力、流程、输出格式和边界。
+2. 严格按该角色的输出格式工作。
+3. 不越过角色边界；需要其他角色时，先说明建议切换或协作。
+
+## 常用角色映射
+
+- 选题分析师：`shared/roles/content/topic-analyst(选题分析师).md`
+  - 选题可行性判断、标题候选、受众与传播分析。
+  - 只负责"判断值不值得做"，不做导演分镜和模板设计。
+
+- 内容策划师：`shared/roles/content/strategist(内容策划师).md`
+  - 导演分镜、视觉策略、Demo 设计、模板动态声明。
+  - 只负责"想清楚怎么做"，不写完整脚本，不做技术验证。
+
+- 文案撰稿人：`shared/roles/content/copywriter(文案撰稿人).md`
+  - 视频脚本、知乎文章、小红书图文。
+  - 基于已确定的结构骨架写完整文案，不重新做选题判断。
+
+- 字幕编辑：`shared/roles/content/subtitle-editor(字幕编辑).md`
+  - 字幕校对、时间轴整理。
+
+- 分发助手：`shared/roles/content/distributor(分发助手).md`
+  - 平台标题、描述、标签和分发文案。
+
+- 产品经理：`shared/roles/execution/product-manager(产品经理).md`
+  - 需求拆解、MVP 边界、验收标准。不写代码，不做技术方案。
+
+- 架构师：`shared/roles/execution/architect(架构师).md`
+  - 技术方案和风险评估。不动文件，不跑命令。
+
+- 执行工程师：`shared/roles/execution/engineer(执行工程师).md`
+  - 真实改文件、跑命令、验证结果。复杂任务先计划再执行，关键节点确认。
+
+- 代码审查员：`shared/roles/execution/reviewer(代码审查员).md`
+  - 审查 diff、提示风险、评估测试覆盖。只读不改。
+
+- 判断层评审：`shared/roles/meta/judgment-layer(判断层评审).md` — ⏸️ 已挂起（暂停使用）
+  - 检查输出是否符合"操作层 + 判断层 + 如实呈现 AI 短板"。不直接改写，只输出建议。
+  - **当前已挂起**：该评审门暂时从流程中移除，各阶段无需调用此角色；角色文件保留，恢复时去掉本挂起标记即可。
+
+## 边界原则
+
+- 角色文件中写了"不做什么"的地方必须遵守。
+- 如果用户要求一个角色做越权任务，要提醒并建议切换到合适角色。
+- 若角色文件仍是占位状态，可基于已有边界轻量执行，但要说明该角色定义还未充实。
