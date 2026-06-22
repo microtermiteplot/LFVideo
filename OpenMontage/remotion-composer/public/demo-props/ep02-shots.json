@@ -1531,6 +1531,10 @@
     "bgCameraZ": 2.95,
     "bgModelYawDeg": 30
   },
+  "unityBackground": {
+    "enabled": false,
+    "src": "UnityBG/index.html"
+  },
   "audio": {
     "narration": {
       "src": "audio/ep02-narration.mp3",

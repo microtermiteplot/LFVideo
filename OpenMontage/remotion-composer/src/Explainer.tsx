@@ -37,6 +37,7 @@ import { KPIGrid } from "./components/charts/KPIGrid";
 import { ProgressBar } from "./components/ProgressBar";
 import { CaptionOverlay, WordCaption } from "./components/CaptionOverlay";
 import { VRMAvatar, AvatarTimelineEntry } from "./components/VRMAvatar";
+import { UnityBackground, UnityBackgroundConfig } from "./components/UnityBackground";
 import {
   AvatarOverride,
   AvatarSceneConfig,
@@ -357,6 +358,8 @@ export interface ExplainerProps {
   captions?: WordCaption[];
   audio?: AudioConfig;
   avatar?: AvatarConfig;
+  /** Live Unity WebGL build rendered as the bottom-most background layer. */
+  unityBackground?: UnityBackgroundConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -933,7 +936,7 @@ const OverlayRenderer: React.FC<{ overlay: Overlay }> = ({ overlay }) => {
 // ---------------------------------------------------------------------------
 
 export const Explainer: React.FC<ExplainerProps> = (props) => {
-  const { cuts, overlays, captions, audio, avatar } = props;
+  const { cuts, overlays, captions, audio, avatar, unityBackground } = props;
   const { fps, durationInFrames } = useVideoConfig();
 
   // Resolve theme from props — playbook name, theme name, or custom themeConfig
@@ -944,8 +947,16 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
 
   return (
     <AbsoluteFill style={{ background: theme.backgroundColor, fontFamily: theme.headingFont || fontFamily }}>
-      {/* Layer 0: Animated gradient background — driven by theme */}
+      {/* Layer 0: Animated gradient background — driven by theme. Acts as a
+          fallback behind the Unity layer (visible if the build is absent). */}
       <AnimatedBackground theme={theme} />
+
+      {/* Layer 0.1: Live Unity WebGL build (bottom-most real-time background).
+          Opaque when present, so it covers the gradient; the host + UI float
+          above it. */}
+      {unityBackground?.enabled && (
+        <UnityBackground enabled src={unityBackground.src} />
+      )}
 
       {/* Layer 0.5: Full-frame digital host (background mode) — sits above the
           gradient, below the UI, which renders with transparent scene bgs. */}

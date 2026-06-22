@@ -35,7 +35,13 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_MD = REPO_ROOT / "content-library" / "ep02-video-render" / "04-script" / "README.md"
 TTS_MANIFEST = REPO_ROOT / "content-library" / "ep02-video-render" / "06-tts" / "assets" / "manifest.json"
 COMPOSER_DIR = Path(__file__).resolve().parent / "remotion-composer"
-OUTPUT_JSON = COMPOSER_DIR / "public" / "demo-props" / "ep02-shots.json"
+PUBLIC_DIR = COMPOSER_DIR / "public"
+OUTPUT_JSON = PUBLIC_DIR / "demo-props" / "ep02-shots.json"
+
+# Live Unity WebGL build as the bottom-most background layer. Drop the build
+# into public/UnityBG/ (so public/UnityBG/index.html exists) and this turns on
+# automatically on the next regeneration.
+UNITY_BG_SRC = "UnityBG/index.html"
 
 FPS = 30
 THEME = "flat-motion-graphics"
@@ -264,6 +270,8 @@ def main() -> int:
         "captions": captions,
         "avatar": AVATAR,
     }
+    unity_present = (PUBLIC_DIR / UNITY_BG_SRC).exists()
+    payload["unityBackground"] = {"enabled": unity_present, "src": UNITY_BG_SRC}
     if tts and tts.get("narration_audio"):
         payload["audio"] = {"narration": {"src": tts["narration_audio"], "volume": 1}}
     OUTPUT_JSON.parent.mkdir(parents=True, exist_ok=True)
