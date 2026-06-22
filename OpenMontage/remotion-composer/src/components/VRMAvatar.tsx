@@ -157,8 +157,8 @@ interface VRMModelProps {
   modelY?: number;
   /** horizontal offset; positive shifts the host toward the right edge */
   modelX?: number;
-  /** in-plane roll in radians; positive is clockwise on screen */
-  modelRotZ?: number;
+  /** yaw in radians about the vertical axis; negative turns clockwise viewed from above */
+  modelYaw?: number;
   /**
    * Optional Mixamo FBX clip (public/ relative path). When set, the body is
    * driven by this retargeted clip instead of the hand-authored procedural
@@ -173,7 +173,7 @@ const VRMModel: React.FC<VRMModelProps> = ({
   captions,
   modelY = -0.95,
   modelX = 0,
-  modelRotZ = 0,
+  modelYaw = 0,
   clipUrl,
   clipSpeed = 1,
 }) => {
@@ -395,7 +395,7 @@ const VRMModel: React.FC<VRMModelProps> = ({
         <primitive
           object={vrm.scene}
           position={[modelX, modelY, 0]}
-          rotation={[0, 0, -modelRotZ]}
+          rotation={[0, modelYaw, 0]}
         />
       )}
     </>
@@ -440,8 +440,8 @@ export interface VRMAvatarProps {
   bgModelY?: number;
   /** Model horizontal offset for background mode (positive = toward right). */
   bgModelX?: number;
-  /** In-plane roll in degrees for background mode (positive = clockwise on screen). */
-  bgModelRotZDeg?: number;
+  /** Yaw in degrees about the vertical axis for background mode (positive = clockwise viewed from above). */
+  bgModelYawDeg?: number;
   /** Playback speed multiplier for the Mixamo clip (1 = original). */
   clipSpeed?: number;
 }
@@ -451,7 +451,7 @@ export interface VRMAvatarProps {
 const BG_CAMERA_Z = 2.2;
 const BG_MODEL_Y = -1.15;
 const BG_MODEL_X = 0.62;
-const BG_MODEL_ROT_Z_DEG = 0;
+const BG_MODEL_YAW_DEG = 0;
 
 function easeInOut(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -466,7 +466,7 @@ export const VRMAvatar: React.FC<VRMAvatarProps> = ({
   bgCameraZ = BG_CAMERA_Z,
   bgModelY = BG_MODEL_Y,
   bgModelX = BG_MODEL_X,
-  bgModelRotZDeg = BG_MODEL_ROT_Z_DEG,
+  bgModelYawDeg = BG_MODEL_YAW_DEG,
   clipSpeed = 1,
 }) => {
   const { width, height } = useVideoConfig();
@@ -492,7 +492,7 @@ export const VRMAvatar: React.FC<VRMAvatarProps> = ({
           <ambientLight intensity={1.1} />
           <directionalLight position={[1, 2, 2]} intensity={1.4} />
           <directionalLight position={[-1.5, 1, 1.5]} intensity={0.6} />
-          <VRMModel captions={captions} modelX={bgModelX} modelY={bgModelY} modelRotZ={(bgModelRotZDeg * Math.PI) / 180} clipUrl={clipUrl} clipSpeed={clipSpeed} />
+          <VRMModel captions={captions} modelX={bgModelX} modelY={bgModelY} modelYaw={(-bgModelYawDeg * Math.PI) / 180} clipUrl={clipUrl} clipSpeed={clipSpeed} />
         </ThreeCanvas>
       </AbsoluteFill>
     );

@@ -51,7 +51,7 @@ AVATAR = {
     "bgModelX": 0.55,
     "bgModelY": -0.92,
     "bgCameraZ": 2.95,
-    "bgModelRotZDeg": 30,
+    "bgModelYawDeg": 30,
 }
 
 TEMPLATE_TO_TYPE = {
