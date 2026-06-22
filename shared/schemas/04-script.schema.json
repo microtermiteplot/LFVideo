@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "ai-ide-workflows/schemas/04-script",
   "title": "Video Script Schema",
-  "description": "Schema for validating the 04-script structured block. As of the 03+04 merge, this block also carries the visual blueprint that previously lived in 03-plan-bilibili: optional top-level video_spec / zoom_crop_directives / template_tickets and per-section props / animation_cues / sub_shots. Stages 05 (B-roll) and 07 (assembly) read these directly from here.",
+  "description": "Schema for validating the 04-script structured block. As of the 03+04 merge, this block also carries the visual blueprint that previously lived in 03-plan-bilibili: optional top-level video_spec / zoom_crop_directives / template_tickets and per-section props / animation_cues / sub_shots. Stages 05 (B-roll) and 07 (assembly) read these directly from here. The shot layer (sections[].shots[]) is the renderable storyboard unit: a section is a narrative beat (one continuous voice paragraph), while each shot binds ONE component instance + props + the voice slice it covers + its own duration, so a long section is cut into several shots instead of one static picture (see shared/docs/remotion-spec.md §1.5).",
   "type": "object",
   "required": [
     "title",
@@ -43,10 +43,56 @@
         "properties": {
           "id": { "type": "string" },
           "section_ref": { "type": "string" },
-          "scene_template": { "type": "string" },
+          "scene_template": {
+            "type": "string",
+            "description": "Section-level single Remotion component, for SHORT single-shot sections only (duration_hint_seconds <= 15). When a section is cut into multiple shots, leave this empty and put one scene_template PER shot in shots[]; do not pick one component here and hide the rest in visual_instructions prose. Optional."
+          },
           "props": {
             "type": "object",
-            "description": "Static Remotion component props for this scene (merged in from the retired 03 stage). Data must align with tutorial.final.md. Optional."
+            "description": "Section-level static Remotion props for the single-shot case. When shots[] is used, props live per shot instead. Data must align with tutorial.final.md. Optional."
+          },
+          "shots": {
+            "type": "array",
+            "description": "Shot-level storyboard decomposition: the renderable units within this section. REQUIRED-IN-SPIRIT whenever duration_hint_seconds > 15 (enforced by scripts/pipeline_lint.py as a hard error once the stage is approved/reviewed): cut the section into shots so the picture changes every <=~12s instead of one static frame. Each shot binds ONE component + props + the voice slice it covers + its own duration. Stage 07 maps each shot one-to-one to a data.ts scene; when shots is absent it falls back to the section-level scene_template/props. This supersedes visual_beats for cross-shot cutting (visual_beats stays for intra-shot micro-animation). See shared/docs/remotion-spec.md §1.5.",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["id", "scene_template", "duration_seconds"],
+              "properties": {
+                "id": { "type": "string", "description": "Shot id, unique within the section, e.g. '4.1'." },
+                "scene_template": { "type": "string", "description": "The single Remotion component/template this shot renders, e.g. @TerminalScene." },
+                "props": {
+                  "type": "object",
+                  "description": "Static props for this shot's component. Data must align with tutorial.final.md."
+                },
+                "voice_slice": {
+                  "type": "string",
+                  "description": "The exact substring of this section's voice that this shot covers (for voice<->picture alignment). In order, the slices should reconstruct the section voice. Optional but recommended."
+                },
+                "duration_seconds": {
+                  "type": "number",
+                  "minimum": 1,
+                  "description": "This shot's on-screen duration. The shot durations should sum to roughly the section duration_hint_seconds."
+                },
+                "track": {
+                  "type": "string",
+                  "enum": ["A", "B", "A/B", "A+B"],
+                  "description": "Per-shot track override (defaults to the section track)."
+                },
+                "visual_beats": {
+                  "type": "array",
+                  "description": "Intra-shot micro-animation cues for THIS shot's single component (stagger / highlight / zoom). Not a substitute for cutting to a new shot.",
+                  "items": {
+                    "type": "object",
+                    "required": ["at_seconds", "action"],
+                    "properties": {
+                      "at_seconds": { "type": "number", "minimum": 0 },
+                      "action": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
           },
           "animation_cues": {
             "type": "array",
@@ -82,7 +128,7 @@
           "duration_hint_seconds": { "type": "number", "minimum": 1 },
           "visual_beats": {
             "type": "array",
-            "description": "Anti-deadtime sub-shot timeline. RECOMMENDED whenever duration_hint_seconds > 15: each beat marks a visible visual change so the shot never stays static longer than ~15s. See shared/docs/remotion-spec.md §1.5.",
+            "description": "LEGACY anti-deadtime annotation timeline for the whole section. These are descriptive {at_seconds, action} strings, NOT renderable units (no component/props/voice slice), so they cannot drive real cross-shot cutting. Prefer shots[] for sections > 15s; keep visual_beats only as intra-shot micro-animation cues for a single component instance. The linter treats a >15s section that has only visual_beats (no shots) as a soft/legacy decomposition and warns to migrate. See shared/docs/remotion-spec.md §1.5.",
             "items": {
               "type": "object",
               "required": ["at_seconds", "action"],

@@ -31,6 +31,7 @@ Exit code is non-zero when any error (not warning) is found.
 from __future__ import annotations
 
 import json
+import math
 import re
 import sys
 from dataclasses import dataclass, field
@@ -40,6 +41,11 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_DIR = REPO_ROOT / "shared" / "schemas"
+
+# A single static picture may not stay on screen longer than this (see
+# shared/docs/remotion-spec.md §1.5). Sections longer than this must be cut
+# into shots[] rather than carrying one component for the whole paragraph.
+DEADTIME_LIMIT_SECONDS = 15
 
 # Statuses that make an upstream safe to build on.
 SAFE_UPSTREAM = {"approved", "suspended"}
@@ -212,6 +218,97 @@ def _contract_section_count(contract: dict) -> int | None:
     return None
 
 
+def _script_unit_count(contract: dict) -> int | None:
+    """The renderable scene count the 04 SSOT defines.
+
+    A section is cut into ``shots[]`` (one renderable scene each); a section
+    with no shots counts as a single scene. Stage 07 maps one scene per shot,
+    so this — not the raw section count — is what assembly must match.
+    """
+    if not isinstance(contract, dict):
+        return None
+    sections = contract.get("sections")
+    if not isinstance(sections, list):
+        return _contract_section_count(contract)
+    total = 0
+    for sec in sections:
+        shots = sec.get("shots") if isinstance(sec, dict) else None
+        total += len(shots) if isinstance(shots, list) and shots else 1
+    return total
+
+
+def _check_anti_deadtime(stage: "Stage", tag: str, report: Report, promote) -> None:
+    """Hard-enforce shared/docs/remotion-spec.md §1.5 on the 04 script.
+
+    Any section longer than ``DEADTIME_LIMIT_SECONDS`` must be cut into enough
+    ``shots[]`` that no single picture stays on screen past the limit. Legacy
+    ``visual_beats``/``sub_shots`` (descriptive, non-renderable annotations)
+    only earn a migration warning; a long section with neither is real
+    deadtime and fails once the stage is approved/reviewed.
+    """
+    contract = stage.contract
+    if not isinstance(contract, dict):
+        return
+    sections = contract.get("sections")
+    if not isinstance(sections, list):
+        return
+    for sec in sections:
+        if not isinstance(sec, dict):
+            continue
+        dur = sec.get("duration_hint_seconds")
+        if not isinstance(dur, (int, float)) or dur <= DEADTIME_LIMIT_SECONDS:
+            continue
+        sid = sec.get("id", "?")
+        min_shots = math.ceil(dur / DEADTIME_LIMIT_SECONDS)
+        shots = sec.get("shots")
+        if isinstance(shots, list) and shots:
+            if len(shots) < min_shots:
+                promote(
+                    f"{tag} anti-deadtime: section '{sid}' is {dur}s but has only "
+                    f"{len(shots)} shot(s); needs >= {min_shots} "
+                    f"(one shot per <= {DEADTIME_LIMIT_SECONDS}s)"
+                )
+            shot_durs = [
+                s.get("duration_seconds")
+                for s in shots
+                if isinstance(s, dict)
+            ]
+            if shot_durs and all(isinstance(d, (int, float)) for d in shot_durs):
+                total = sum(shot_durs)
+                if abs(total - dur) > max(5, 0.25 * dur):
+                    report.warn(
+                        f"{tag} anti-deadtime: section '{sid}' shot durations sum "
+                        f"to {total}s but section duration_hint is {dur}s"
+                    )
+            slices = [
+                s.get("voice_slice") for s in shots if isinstance(s, dict)
+            ]
+            voice = sec.get("voice")
+            if (
+                isinstance(voice, str)
+                and slices
+                and all(isinstance(x, str) and x for x in slices)
+            ):
+                joined = "".join(re.sub(r"\s+", "", x) for x in slices)
+                if joined != re.sub(r"\s+", "", voice):
+                    report.warn(
+                        f"{tag} anti-deadtime: section '{sid}' concatenated shot "
+                        f"voice_slice does not reconstruct the section voice"
+                    )
+        elif sec.get("visual_beats") or sec.get("sub_shots"):
+            report.warn(
+                f"{tag} anti-deadtime: section '{sid}' is {dur}s and relies on "
+                f"legacy visual_beats/sub_shots annotations (not renderable); "
+                f"migrate to shots[] with >= {min_shots} shots for real fast-cut"
+            )
+        else:
+            promote(
+                f"{tag} anti-deadtime: section '{sid}' is {dur}s with a single "
+                f"static picture (no shots[], no visual_beats); cut into "
+                f">= {min_shots} shots"
+            )
+
+
 def lint_episode(episode_dir: Path, report: Report) -> None:
     stages = load_stages(episode_dir)
     ep = episode_dir.name
@@ -224,7 +321,7 @@ def lint_episode(episode_dir: Path, report: Report) -> None:
     script_number = script_stage.number if script_stage else None
     if script_stage and isinstance(script_stage.contract, dict):
         forbidden = script_stage.contract.get("anti_hype_forbidden") or []
-        script_section_count = _contract_section_count(script_stage.contract)
+        script_section_count = _script_unit_count(script_stage.contract)
 
     for stage in stages:
         tag = f"[{ep}/{stage.dirname}]"
@@ -285,7 +382,8 @@ def lint_episode(episode_dir: Path, report: Report) -> None:
             if count is not None and count != script_section_count:
                 promote(
                     f"{tag} consistency: {count} scenes but 04 script defines "
-                    f"{script_section_count} sections (structure drifted from SSOT)"
+                    f"{script_section_count} renderable scenes/shots "
+                    f"(structure drifted from SSOT)"
                 )
 
         # 5. anti-hype title scan (only downstream of the 04 contract that set it)
@@ -297,6 +395,10 @@ def lint_episode(episode_dir: Path, report: Report) -> None:
                         f"{tag} anti-hype: title contains banned phrase "
                         f"'{phrase}' (04 contract forbids it)"
                     )
+
+        # 6. anti-deadtime (04 script only): long sections must be cut into shots
+        if stage.stage.startswith("04") and isinstance(stage.contract, dict):
+            _check_anti_deadtime(stage, tag, report, promote)
 
 
 def _has_numbered_stages(path: Path) -> bool:

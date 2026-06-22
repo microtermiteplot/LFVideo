@@ -18,7 +18,7 @@
    - 凡是 Remotion 代码无法生成的画面（如：真实 IDE 界面/报错弹窗截图、人声口播 mp4、执行渲染命令的终端录屏），必须在脚本中用 **`[B 轨占位：请用户提供 screen_error.png/mp4]`** 的格式显式标出，提醒用户后期补充。
 3. **画面必须持续有节奏（防静止 / Anti-Deadtime）**：
    - **红线**：同一镜头的画面静止时间**不得超过 15 秒**（30fps 下约 450 帧无任何状态变化）。一大段口播绝不允许只配一个一动不动的静止画面。
-   - 凡是一段画面（或一个组件实例）对应的口播时长超过 15 秒，必须把它拆成多个**视觉节拍（visual beat）**，每个节拍≤15 秒，让画面随口播持续推进。详见下方「§1.5 画面节奏与防静止」。
+   - **镜头才是画面单位**：叙事段（section）是一整段连续口播，但上屏的是**镜头（shot）**。凡是一个 section 的口播时长超过 15 秒，必须把它切成多个镜头（在 04 契约填 `sections[].shots[]`，每个 shot = 一个组件实例 + props + 覆盖的口播 `voice_slice` + `duration_seconds`），让画面随口播持续推进。镜头内部的细节动作（stagger / 高亮 / Zoom）才用该 shot 的 `visual_beats` 表达。详见下方「§1.5 画面节奏与防静止」。
 
 ---
 
@@ -35,9 +35,12 @@
 4. **B 轨录屏切入**：讲实操时切到 `@VideoSlot` 录屏片段，并随讲解 Zoom 到对应位置。
 5. **真正的分镜拆分**：把一个长 scene 拆成多个 storyboard 子镜头（每个子镜头一个组件实例 + 一段口播）。
 
+**拆解的首选手法 = 镜头切分（shots）**：上述 1–5 是可用手法，但「给一个长镜头贴文字节拍」是治标；根治是把过长的 section 拆成多个可渲染的 shot（手法 5）。`visual_beats` 是 `{at_seconds, action}` 的**描述性字符串**，没有组件/props/口播切片，驱动不了真正的快切；它只适合描述**单个组件内部**的微动效。
+
 **落地约定**：
-- 在 **04 分镜口播稿**（已合并原 03 视听策划）：长口播段的 `[画面]` 必须写出**子镜头时间线**（第几秒画面发生什么变化），并在 JSON 契约块该 section 填写 `visual_beats`（每个 beat 含 `at_seconds` + `action`），或用可选字段 `sub_shots`/`animation_cues`；任何 `duration_hint_seconds > 15` 的 section 不得只配单一静止画面。
-- 经验值：中文口播约每秒 4–5 字，15 秒 ≈ 60–75 字。**口播超过 ~75 字仍只配一个静止画面 = 不合格**，必须加节拍或拆分。
+- 在 **04 分镜口播稿**（已合并原 03 视听策划）：任何 `duration_hint_seconds > 15` 的 section，必须在 JSON 契约块该 section 填 `shots[]`，且镜头数 `≥ ceil(时长/15)`；每个 shot 含 `scene_template` + `props` + `voice_slice` + `duration_seconds`，shot 内可选填 `visual_beats` 作为组件内微动效。
+- **硬校验**：`scripts/pipeline_lint.py` 在该期 04 被置 `approved`/`reviewed` 后，对 `> 15s` 却未切足 `shots[]` 的 section **硬报错**；仅用旧的 `visual_beats`/`sub_shots` 文字注解会被警告「请迁移到 shots[]」。下游 07 按「一个 shot ↔ 一个 data.ts 场景」逐条映射（section 无 shots 时退化为整段一个场景）。
+- 经验值：中文口播约每秒 4–5 字，15 秒 ≈ 60–75 字。**口播超过 ~75 字仍只配一个静止画面 = 不合格**，必须切成多个镜头。
 
 ---
 

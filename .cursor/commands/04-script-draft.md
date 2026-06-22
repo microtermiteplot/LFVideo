@@ -48,14 +48,17 @@
 
 按 `02-plan/README.md` 声明的视觉模版和大纲，对每个 section **同时**产出画面与口播：
 
+> 🎬 **段 (section) 是叙事单位，镜头 (shot) 才是画面单位**。一个 section = 大纲里的一个叙事节拍 + 一整段连续口播；真正上屏的是**镜头**。一段 90 秒的口播不能配一个组件硬撑全场，必须按语义/标点把这段口播切成多个**镜头 `shots[]`**，每个镜头 = 一个组件实例 + 它的 Props + 它覆盖的那截口播 (`voice_slice`) + 自己的时长 (`duration_seconds`)，让画面每 ≤~12 秒就换一次。**`scene_template`/`props` 优先写在 shot 上**；只有当整段 ≤15 秒、确属单镜头时，才允许写在 section 级。多组件接力（如 讲流向 `@ConceptScene` → 展示配置 `@TerminalScene` → 对照 `@SplitLayout`）天然就是多个 shot，**严禁把多个组件塞进一个 section 的 `scene_template` 字段或 `visual_instructions` 散文里**。
+
 * **体量要求**：长 5-10 分钟，口播 1500 - 2500 字。
 * **内容深度**：按 `tutorial.final.md` 的两步主线展开——先用大白话讲「用 Vibe Coding 怎么选这条技术路线」，再讲「用 Vibe Coding 怎么把本期能力搭出来」；把声明的模板组件（如 `@TableScene`、`@TimelineScene`）Props 参数填充完整。
+* **镜头切分（防静止的根治手法）**：任何 `duration_hint_seconds > 15` 的 section 必须切成 `≥ ceil(时长/15)` 个 shot；shot 内部组件还需要 stagger/高亮/Zoom 这类微动效时，才用该 shot 的 `visual_beats`（它只描述**单个组件内**的细节动画，不承担切镜职责）。
 * **组件映射决策**：现有组件可表达 → 复用并标注组件名与 Props；无法表达 → 声明 `Template Ticket`（含物理路径建议、Props 接口、动画规范）。
 * **录屏 zoom 指令**：对含 B 轨的场景生成 `zoom_crop_directives`（clip_id / 时间戳 / 缩放倍数 / 焦点坐标）。
 
 #### 3.1 脚本内格式模板
 
-脚本必须分 `[画面]` 和 `[口播]` 两轨；当一段口播估算时长 > 15 秒（中文约每秒 4–5 字，即 > ~75 字）时，`[画面]` 必须额外给出 **[子镜头时间线]**，逐拍写出画面在第几秒发生什么变化，避免长口播配单一静止画面（详见 `shared/docs/remotion-spec.md` §1.5 防静止规范）：
+脚本必须分 `[画面]` 和 `[口播]` 两轨；当一段口播估算时长 > 15 秒（中文约每秒 4–5 字，即 > ~75 字）时，`[画面]` 必须把这段拆成多个 **[镜头 shot]**——每个镜头写明组件、Props、覆盖的那截口播与时长，让画面跟着口播切换（详见 `shared/docs/remotion-spec.md` §1.5 防静止规范）。短的单镜头段（≤15s）可直接在 section 行写组件，不必拆 shot：
 
 ```markdown
 ---
@@ -74,10 +77,13 @@ source_workflow: /04-script-draft
   - **[子镜头时间线]**（干货式钩子，实质画面）：0s 首屏呈现本期核心成果/「配置→出片」的真实画面 → 4s 一句话点题落到主标题 → 12s 关键认知卡浮出 → 20s 三步路线图依次锁定
 - **[口播]** （结论先行、不客套）这期把视频写成代码、让 AI 按配置自动出片；先记住一个关键认知：AI 最强的是啃文本和代码，所以渲染就该用数据驱动。
 
-## 第二段：【@TableScene】用 Vibe Coding 选路线·对比矩阵（目标时长）
-- **[画面]** 调用 `@TableScene` 模版（严谨工程术语）。Props columns=["技术路线","适用场景","局限条件","关键约束"], rows=[["Remotion","前端栈、复杂网页排版、跨期模板复用","纯后台超长视频批处理","打包时读浏览器对象会崩；BUSL 商业授权"],["Manim","数学/公式/算法可视化","常规 UI、网页排版","排版弱、渲染慢"]], highlightColumn="3"
-  - **[子镜头时间线]**（本段口播 >15s，必填）：0s 表头淡入 → 3s 第 1 行 stagger 入场 → 7s 第 2 行入场并高亮 → 12s Zoom 聚焦「关键约束」列 → 18s 缩表 + 浮出「为什么选它」结论卡
-- **[口播]** 我没挨个去试，是让 AI 把这几条技术路线摆出来、再让它说清各自的适用场景与关键约束，最后对着我自己的工程约束做减法——这一步的判断，还得人来。
+## 第二段：用 Vibe Coding 选路线·对比矩阵（目标时长 40s，本段 >15s → 切成多个镜头）
+- **[口播]**（整段，下游 TTS 唯一真源）我没挨个去试，是让 AI 把这几条技术路线摆出来、再让它说清各自的适用场景与关键约束，最后对着我自己的工程约束做减法——这一步的判断，还得人来。
+- **[镜头 2.1]** `@TableScene`（≈22s）。Props columns=["技术路线","适用场景","局限条件","关键约束"], rows=[["Remotion","前端栈、复杂网页排版、跨期模板复用","纯后台超长视频批处理","打包时读浏览器对象会崩；BUSL 商业授权"],["Manim","数学/公式/算法可视化","常规 UI、网页排版","排版弱、渲染慢"]], highlightColumn="3"
+  - voice_slice：「我没挨个去试…说清各自的适用场景与关键约束」
+  - 镜头内微动效：0s 表头淡入 → 3s 第 1 行 stagger → 7s 第 2 行入场并高亮 → 18s Zoom 聚焦「关键约束」列
+- **[镜头 2.2]** `@SplitLayout`（≈18s）。左「按工程约束做减法的三条标准」右「胜出：Remotion」
+  - voice_slice：「最后对着我自己的工程约束做减法——这一步的判断，还得人来」
 ```
 
 ---
@@ -95,7 +101,7 @@ source_workflow: /04-script-draft
 **视觉侧（[画面] / Props / 录屏指令）：**
 - ❌ **组件覆盖度**：每个 section 是否都映射到具体组件或 Template Ticket？（禁止留下未解决的抽象描述）
 - ❌ **受众对齐与术语专业化**：是否出现面向传统剪辑师的痛点对比（传统剪辑/拖时间轴/手动对字幕）？选型表述是否使用严谨工程术语（适用场景/局限条件/关键约束）而非「不适用+坑/报菜名/复制粘贴土办法」？（口语化只允许出现在 `[口播]`，视觉/Props 字段用工程术语）
-- ❌ **防静止**：是否存在任一段口播 > 15 秒（约 75 字）却只配单一静止画面？若有，必须为该段补 **[子镜头时间线]** / `visual_beats` 或拆分分镜（见 `shared/docs/remotion-spec.md` §1.5）。
+- ❌ **防静止（硬性·镜头级）**：任一 `duration_hint_seconds > 15` 的 section 是否切成了 `≥ ceil(时长/15)` 个 `shots[]`（每个 shot 一个组件 + Props + `voice_slice` + `duration_seconds`）？只写 section 级 `visual_beats`/`sub_shots` 文字注解而不拆 shot = 不合格（`pipeline_lint.py` 在该期 04 置 `approved`/`reviewed` 时会硬报错）。shot 内的 `visual_beats` 仅用于单组件内部微动效，不算切镜（见 `shared/docs/remotion-spec.md` §1.5）。
 - ❌ **A/B 轨兜底完整性**：含 B 轨录屏的场景，脚本是否同时给出了 `[B 轨]`（含 `zoom_crop_directives`）和 `[A 轨兜底]` 画面指示？缺一即判不合格。
 - ❌ 脚本中是否将声明的新模版组件（如 `@TableScene` 等）Props 参数和数据 Schema 100% 填充完整？
 
@@ -114,7 +120,7 @@ source_workflow: /04-script-draft
 
 - 创建目录：`content-library/<epNN-slug>/04-script/`，将脚本写入 `04-script/README.md`。
 - **MANDATORY**：脚本末尾必须追加符合 `shared/schemas/04-script.schema.json` 规范的 ` ```json ` 结构化块。
-- **该 JSON 块是下游全部阶段（B轨录屏/TTS/组装/字幕/分发）的唯一真源（SSOT），一旦 approve 即冻结**：其中 `title`、`sections[].id`/`voice`/`duration_hint_seconds`、以及 `anti_hype_forbidden`（噱头黑名单）是下游**不得改写**的硬契约；`video_spec`、`sections[].scene_template`/`props`/`visual_beats`、`zoom_crop_directives` 由本阶段一并产出，供 05/07 直接读取。下游只能逐条映射，不能增删段落、重写标题/口播或重新引入噱头。示例：
+- **该 JSON 块是下游全部阶段（B轨录屏/TTS/组装/字幕/分发）的唯一真源（SSOT），一旦 approve 即冻结**：其中 `title`、`sections[].id`/`voice`/`duration_hint_seconds`、以及 `anti_hype_forbidden`（噱头黑名单）是下游**不得改写**的硬契约；`video_spec`、`sections[].shots[]`（含每个 shot 的 `scene_template`/`props`/`voice_slice`/`duration_seconds`）/`scene_template`/`props`/`visual_beats`、`zoom_crop_directives` 由本阶段一并产出，供 05/07 直接读取——**07 组装按「一个 shot ↔ 一个 data.ts 场景」逐条映射**（section 无 shots 时退化为整段一个场景）。下游只能逐条映射，不能增删段落/镜头、重写标题/口播或重新引入噱头。示例：
   ```json
   {
     "title": "定稿视频标题",
@@ -134,15 +140,28 @@ source_workflow: /04-script-draft
       {
         "id": "2",
         "track": "A",
-        "scene_template": "@TableScene",
-        "props": { "columns": ["技术路线","适用场景","局限条件","关键约束"], "rows": [] },
-        "voice": "口播第二段（较长，>15s）...",
-        "visual_instructions": "调用 @TableScene 并按节拍推进",
-        "duration_hint_seconds": 20,
-        "visual_beats": [
-          { "at_seconds": 0, "action": "表头淡入" },
-          { "at_seconds": 7, "action": "第 2 行入场并 highlight_cell(2,3)" },
-          { "at_seconds": 18, "action": "缩表并浮出结论卡" }
+        "voice": "口播第二段（较长，>15s，下游 TTS 逐字搬运整段）...",
+        "visual_instructions": "切成两个镜头：先 @TableScene 摆矩阵，再 @SplitLayout 收结论",
+        "duration_hint_seconds": 40,
+        "shots": [
+          {
+            "id": "2.1",
+            "scene_template": "@TableScene",
+            "props": { "columns": ["技术路线","适用场景","局限条件","关键约束"], "rows": [] },
+            "voice_slice": "口播第二段的前半截...",
+            "duration_seconds": 22,
+            "visual_beats": [
+              { "at_seconds": 0, "action": "表头淡入" },
+              { "at_seconds": 7, "action": "第 2 行入场并 highlight_cell(2,3)" }
+            ]
+          },
+          {
+            "id": "2.2",
+            "scene_template": "@SplitLayout",
+            "props": { "left": "工程约束三条", "right": "胜出：Remotion" },
+            "voice_slice": "口播第二段的后半截...",
+            "duration_seconds": 18
+          }
         ]
       }
     ],
@@ -165,7 +184,7 @@ source_workflow: /04-script-draft
 - 阶段状态头部 frontmatter 置 `status: draft`（待人工评审通过后方可改为 `approved`）。
 - 执行机器校验（Schema + 跨阶段防漂移）：
   ```bash
-  # 校验本期全链路：Schema 契约 + provenance + 门禁 + 04↔组装一致性 + 噱头黑名单
+  # 校验本期全链路：Schema 契约 + provenance + 门禁 + 04↔组装一致性 + 噱头黑名单 + 防静止镜头拆分
   python scripts/pipeline_lint.py content-library/<epNN-slug>
   ```
 - 更新 `content-library/PIPELINE.md` 看板：该期 04 脚本列置为 `draft`。

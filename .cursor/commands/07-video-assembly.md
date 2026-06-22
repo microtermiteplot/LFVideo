@@ -44,8 +44,11 @@ video/src/
 
 在 `video/src/episodes/epNN-slug/` 目录下创建 `data.ts`：
 - 读取 `04-script/README.md` 末尾的 JSON 契约块——**它是唯一真源（SSOT）**。
-- 将每一段**逐条映射**为 Remotion 的 JSON 数据格式：`sections[]` 与 `data.ts` 的场景**一一对应**，`voice` 口播**逐字搬运**，`scene_template` / `duration_hint_seconds` / `visual_beats` 照搬。
-- **禁止改写**：不得增删、合并、拆分段落，不得改写标题或口播，不得自创 04 里没有的内容线。本阶段只做"映射"，不做"创作/提炼"。
+- 将每一段**逐条映射**为 Remotion 的 JSON 数据格式，映射单位是**镜头 (shot)**：
+  - 若某 section 含 `shots[]`，则 `data.ts` 里为**每个 shot 生成一个场景**（场景顺序＝shot 顺序），`scene_template` / `props` / `duration_seconds` / `visual_beats` 取自该 shot；该 section 的 `voice` 仍整段对齐到这串镜头的时间区间上（按 `voice_slice` / `duration_seconds` 切分时间轴）。
+  - 若某 section 没有 `shots[]`（短的单镜头段），则退化为整段一个场景，照搬 section 级 `scene_template` / `props` / `duration_hint_seconds` / `visual_beats`。
+  - `voice` 口播一律**逐字搬运**；`data.ts` 的场景总数应等于「所有 section 的 shots 数之和（无 shots 的 section 计 1）」——`scripts/pipeline_lint.py` 会用这个数校验组装一致性。
+- **禁止改写**：不得增删、合并、拆分段落或镜头，不得改写标题或口播，不得自创 04 里没有的内容线。本阶段只做"映射"，不做"创作/提炼"。
 - 若发现 04 确有问题需要改动，回到 `/04-script-draft` 修订并重新 approve，再回来组装——不要在本阶段就地改稿（否则下游全部漂移）。
 
 ### 3. 配置 B 轨人工录制素材（若有）
