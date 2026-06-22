@@ -48,7 +48,7 @@ AVATAR = {
     "layer": "background",
     "clip": "avatars/Sitting.fbx",
     "clipSpeed": 0.6,
-    "bgModelX": 0.95,
+    "bgModelX": 0.55,
     "bgModelY": -0.92,
     "bgCameraZ": 2.95,
     "bgModelRotZDeg": 30,
