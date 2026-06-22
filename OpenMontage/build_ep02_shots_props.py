@@ -48,9 +48,10 @@ AVATAR = {
     "layer": "background",
     "clip": "avatars/Sitting.fbx",
     "clipSpeed": 0.6,
-    "bgModelX": 0.66,
+    "bgModelX": 0.95,
     "bgModelY": -0.92,
     "bgCameraZ": 2.95,
+    "bgModelRotZDeg": 30,
 }
 
 TEMPLATE_TO_TYPE = {

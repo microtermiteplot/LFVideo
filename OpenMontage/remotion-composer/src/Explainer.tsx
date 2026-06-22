@@ -346,6 +346,8 @@ interface AvatarConfig extends AvatarSceneConfig {
   bgModelX?: number;
   bgModelY?: number;
   bgCameraZ?: number;
+  /** In-plane roll in degrees (positive = clockwise on screen). */
+  bgModelRotZDeg?: number;
 }
 
 export interface ExplainerProps {
@@ -955,6 +957,7 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
           bgModelX={avatar?.bgModelX}
           bgModelY={avatar?.bgModelY}
           bgCameraZ={avatar?.bgCameraZ}
+          bgModelRotZDeg={avatar?.bgModelRotZDeg}
           captions={captions}
         />
       )}
