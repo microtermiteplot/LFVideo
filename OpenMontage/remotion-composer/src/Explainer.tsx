@@ -340,6 +340,12 @@ interface AvatarConfig extends AvatarSceneConfig {
   layer?: "overlay" | "background";
   /** Mixamo FBX clip (public/ relative path) driving the host's body. */
   clip?: string;
+  /** Playback speed multiplier for the Mixamo clip (1 = original). */
+  clipSpeed?: number;
+  /** Background-mode framing overrides. */
+  bgModelX?: number;
+  bgModelY?: number;
+  bgCameraZ?: number;
 }
 
 export interface ExplainerProps {
@@ -942,7 +948,15 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
       {/* Layer 0.5: Full-frame digital host (background mode) — sits above the
           gradient, below the UI, which renders with transparent scene bgs. */}
       {bgAvatar && (
-        <VRMAvatar background clipUrl={avatar?.clip} captions={captions} />
+        <VRMAvatar
+          background
+          clipUrl={avatar?.clip}
+          clipSpeed={avatar?.clipSpeed}
+          bgModelX={avatar?.bgModelX}
+          bgModelY={avatar?.bgModelY}
+          bgCameraZ={avatar?.bgCameraZ}
+          captions={captions}
+        />
       )}
 
       {/* Layer 1: Visual scenes */}

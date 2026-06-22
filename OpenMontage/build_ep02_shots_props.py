@@ -33,6 +33,7 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_MD = REPO_ROOT / "content-library" / "ep02-video-render" / "04-script" / "README.md"
+TTS_MANIFEST = REPO_ROOT / "content-library" / "ep02-video-render" / "06-tts" / "assets" / "manifest.json"
 COMPOSER_DIR = Path(__file__).resolve().parent / "remotion-composer"
 OUTPUT_JSON = COMPOSER_DIR / "public" / "demo-props" / "ep02-shots.json"
 
@@ -40,11 +41,16 @@ FPS = 30
 THEME = "flat-motion-graphics"
 
 # Digital host as a full-frame background layer (Mixamo clip drives the body);
-# the Remotion UI floats on top with transparent scene backgrounds.
+# the Remotion UI floats on top with transparent scene backgrounds. The clip
+# plays at 0.6x and the host is parked on the right, vertically centred.
 AVATAR = {
     "enabled": True,
     "layer": "background",
     "clip": "avatars/Sitting.fbx",
+    "clipSpeed": 0.6,
+    "bgModelX": 0.66,
+    "bgModelY": -0.92,
+    "bgCameraZ": 2.95,
 }
 
 TEMPLATE_TO_TYPE = {
@@ -187,8 +193,33 @@ def load_ssot_sections() -> list[dict[str, Any]]:
     return json.loads(block)["sections"]
 
 
-def build_cuts(sections: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], float]:
+def load_tts_manifest() -> dict[str, Any] | None:
+    """Per-shot real durations + lip-sync captions from 06-tts, if synthesised."""
+    if not TTS_MANIFEST.exists():
+        return None
+    data = json.loads(TTS_MANIFEST.read_text(encoding="utf-8"))
+    if data.get("provider_status") != "synthesized":
+        return None
+    return data
+
+
+def build_cuts(
+    sections: list[dict[str, Any]],
+    tts: dict[str, Any] | None,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], float]:
+    # When 06-tts has been synthesised it is the timing source of truth: each
+    # shot's on-screen cut runs exactly as long as its narration segment, and
+    # the captions (absolute ms) drive both the burned-in subtitles and the
+    # host's lip-sync.
+    tts_dur: dict[str, float] = {}
+    tts_caps: dict[str, list[dict[str, Any]]] = {}
+    if tts:
+        for s in tts["shots"]:
+            tts_dur[s["id"]] = float(s["duration_seconds"])
+            tts_caps[s["id"]] = s.get("captions") or []
+
     cuts: list[dict[str, Any]] = []
+    captions: list[dict[str, Any]] = []
     cursor = 0.0
     for sec in sections:
         shots = sec.get("shots") or []
@@ -203,7 +234,8 @@ def build_cuts(sections: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], fl
             content = SHOT_CONTENT.get(sid)
             if content is None:
                 raise SystemExit(f"shot {sid}: no authored SHOT_CONTENT")
-            frames = int(round(float(shot["duration_seconds"]) * FPS))
+            seconds = tts_dur.get(sid, float(shot["duration_seconds"]))
+            frames = int(round(seconds * FPS))
             dur = frames / FPS
             cut = {
                 "id": f"shot-{sid}",
@@ -214,25 +246,31 @@ def build_cuts(sections: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], fl
                 **content,
             }
             cuts.append(cut)
+            for cap in tts_caps.get(sid, []):
+                captions.append(cap)
             cursor += dur
-    return cuts, cursor
+    return cuts, captions, cursor
 
 
 def main() -> int:
     sections = load_ssot_sections()
-    cuts, total = build_cuts(sections)
+    tts = load_tts_manifest()
+    cuts, captions, total = build_cuts(sections, tts)
     payload: dict[str, Any] = {
         "theme": THEME,
         "cuts": cuts,
         "overlays": [],
-        "captions": [],
+        "captions": captions,
         "avatar": AVATAR,
     }
+    if tts and tts.get("narration_audio"):
+        payload["audio"] = {"narration": {"src": tts["narration_audio"], "volume": 1}}
     OUTPUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_JSON.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print("=" * 60)
     print(f"Wrote {OUTPUT_JSON.relative_to(REPO_ROOT)}")
     print(f"Cuts: {len(cuts)} | Duration: {total:.2f}s ({int(round(total * FPS))} frames @ {FPS}fps)")
+    print(f"Captions: {len(captions)} | TTS: {'on' if tts else 'off (storyboard timing)'}")
     by_type: dict[str, int] = {}
     for c in cuts:
         by_type[c["type"]] = by_type.get(c["type"], 0) + 1
