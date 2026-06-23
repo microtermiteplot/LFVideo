@@ -1532,8 +1532,26 @@
     "bgModelYawDeg": 30
   },
   "unityBackground": {
-    "enabled": false,
-    "src": "UnityBG/index.html"
+    "enabled": true,
+    "image": "UnityBG.png",
+    "screenQuad": {
+      "tl": [
+        4,
+        136
+      ],
+      "tr": [
+        1203,
+        271
+      ],
+      "br": [
+        1203,
+        795
+      ],
+      "bl": [
+        4,
+        925
+      ]
+    }
   },
   "audio": {
     "narration": {

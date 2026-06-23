@@ -37,7 +37,7 @@ import { KPIGrid } from "./components/charts/KPIGrid";
 import { ProgressBar } from "./components/ProgressBar";
 import { CaptionOverlay, WordCaption } from "./components/CaptionOverlay";
 import { VRMAvatar, AvatarTimelineEntry } from "./components/VRMAvatar";
-import { UnityBackground, UnityBackgroundConfig } from "./components/UnityBackground";
+import { quadMatrix3d, UnityBackgroundConfig } from "./components/screenWarp";
 import {
   AvatarOverride,
   AvatarSceneConfig,
@@ -937,7 +937,7 @@ const OverlayRenderer: React.FC<{ overlay: Overlay }> = ({ overlay }) => {
 
 export const Explainer: React.FC<ExplainerProps> = (props) => {
   const { cuts, overlays, captions, audio, avatar, unityBackground } = props;
-  const { fps, durationInFrames } = useVideoConfig();
+  const { fps, durationInFrames, width, height } = useVideoConfig();
 
   // Resolve theme from props — playbook name, theme name, or custom themeConfig
   const theme = resolveTheme(props as Record<string, unknown>);
@@ -945,18 +945,16 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
   // Full-frame digital host as the bottom layer, with the UI floating on top.
   const bgAvatar = !!avatar?.enabled && avatar?.layer === "background";
 
-  return (
-    <AbsoluteFill style={{ background: theme.backgroundColor, fontFamily: theme.headingFont || fontFamily }}>
-      {/* Layer 0: Animated gradient background — driven by theme. Acts as a
-          fallback behind the Unity layer (visible if the build is absent). */}
-      <AnimatedBackground theme={theme} />
+  // The whole page is rendered as "screen content". When a Unity room shot +
+  // green-screen quad are supplied, this content is perspective-warped into the
+  // quad and the room shot is dropped behind it.
+  const screen = unityBackground;
+  const warp = !!(screen?.enabled && screen.image && screen.screenQuad);
 
-      {/* Layer 0.1: Live Unity WebGL build (bottom-most real-time background).
-          Opaque when present, so it covers the gradient; the host + UI float
-          above it. */}
-      {unityBackground?.enabled && (
-        <UnityBackground enabled src={unityBackground.src} />
-      )}
+  const inner = (
+    <>
+      {/* Layer 0: Animated gradient background — driven by theme. */}
+      <AnimatedBackground theme={theme} />
 
       {/* Layer 0.5: Full-frame digital host (background mode) — sits above the
           gradient, below the UI, which renders with transparent scene bgs. */}
@@ -1042,7 +1040,11 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
           backgroundColor={theme.captionBackgroundColor}
         />
       )}
+    </>
+  );
 
+  const audioEls = (
+    <>
       {/* Layer 4: Audio — narration */}
       {audio?.narration?.src && (
         <Audio src={resolveAsset(audio.narration.src)} volume={audio.narration.volume ?? 1} />
@@ -1077,6 +1079,42 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
           }}
         />
       )}
+    </>
+  );
+
+  // Warped path: room shot behind, page perspective-mapped into the green quad.
+  if (warp) {
+    return (
+      <AbsoluteFill style={{ background: "#000", fontFamily: theme.headingFont || fontFamily }}>
+        <Img
+          src={resolveAsset(screen!.image!)}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width,
+            height,
+            transformOrigin: "0 0",
+            transform: quadMatrix3d(width, height, screen!.screenQuad!),
+            backfaceVisibility: "hidden",
+          }}
+        >
+          <AbsoluteFill style={{ background: theme.backgroundColor, overflow: "hidden" }}>
+            {inner}
+          </AbsoluteFill>
+        </div>
+        {audioEls}
+      </AbsoluteFill>
+    );
+  }
+
+  return (
+    <AbsoluteFill style={{ background: theme.backgroundColor, fontFamily: theme.headingFont || fontFamily }}>
+      {inner}
+      {audioEls}
     </AbsoluteFill>
   );
 };

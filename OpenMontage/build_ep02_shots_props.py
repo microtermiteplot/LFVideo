@@ -38,10 +38,18 @@ COMPOSER_DIR = Path(__file__).resolve().parent / "remotion-composer"
 PUBLIC_DIR = COMPOSER_DIR / "public"
 OUTPUT_JSON = PUBLIC_DIR / "demo-props" / "ep02-shots.json"
 
-# Live Unity WebGL build as the bottom-most background layer. Drop the build
-# into public/UnityBG/ (so public/UnityBG/index.html exists) and this turns on
-# automatically on the next regeneration.
-UNITY_BG_SRC = "UnityBG/index.html"
+# Unity room screenshot as the bottom layer; the whole page is perspective-
+# warped into the green-screen quad (corners in 1920x1080 px, detected from the
+# image). Drop the shot into public/UnityBG.png and this turns on automatically.
+UNITY_BG_IMAGE = "UnityBG.png"
+# Detected inner edge of the green screen, expanded ~6px outward so the warped
+# page over-covers the chroma fringe instead of leaving a green sliver.
+UNITY_BG_QUAD = {
+    "tl": [4, 136],
+    "tr": [1203, 271],
+    "br": [1203, 795],
+    "bl": [4, 925],
+}
 
 FPS = 30
 THEME = "flat-motion-graphics"
@@ -270,8 +278,12 @@ def main() -> int:
         "captions": captions,
         "avatar": AVATAR,
     }
-    unity_present = (PUBLIC_DIR / UNITY_BG_SRC).exists()
-    payload["unityBackground"] = {"enabled": unity_present, "src": UNITY_BG_SRC}
+    unity_present = (PUBLIC_DIR / UNITY_BG_IMAGE).exists()
+    payload["unityBackground"] = {
+        "enabled": unity_present,
+        "image": UNITY_BG_IMAGE,
+        "screenQuad": UNITY_BG_QUAD,
+    }
     if tts and tts.get("narration_audio"):
         payload["audio"] = {"narration": {"src": tts["narration_audio"], "volume": 1}}
     OUTPUT_JSON.parent.mkdir(parents=True, exist_ok=True)
