@@ -37,6 +37,7 @@ import { KPIGrid } from "./components/charts/KPIGrid";
 import { ProgressBar } from "./components/ProgressBar";
 import { CaptionOverlay, WordCaption } from "./components/CaptionOverlay";
 import { VRMAvatar, AvatarTimelineEntry } from "./components/VRMAvatar";
+import { quadMatrix3d, UnityBackgroundConfig } from "./components/screenWarp";
 import {
   AvatarOverride,
   AvatarSceneConfig,
@@ -79,6 +80,12 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
     ? clean.split("").map(c => c + c).join("")
     : clean, 16);
   return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+}
+
+// hex -> rgba() string with the given alpha
+function hexToRgba(hex: string, a: number): string {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
 
 // Detect if a color is "light" (for choosing grid/overlay treatment)
@@ -340,6 +347,21 @@ interface AvatarConfig extends AvatarSceneConfig {
   layer?: "overlay" | "background";
   /** Mixamo FBX clip (public/ relative path) driving the host's body. */
   clip?: string;
+  /** Playback speed multiplier for the Mixamo clip (1 = original). */
+  clipSpeed?: number;
+  /** Background-mode framing overrides. */
+  bgModelX?: number;
+  bgModelY?: number;
+  bgCameraZ?: number;
+  /** Yaw in degrees about the vertical axis (positive = clockwise viewed from above). */
+  bgModelYawDeg?: number;
+  /** 2D placement of the background host overlay (CSS, pixel-exact). Scale is
+      about the origin (% of frame); offsets are in composition pixels. */
+  bgScale?: number;
+  bgOffsetXpx?: number;
+  bgOffsetYpx?: number;
+  bgOriginXPct?: number;
+  bgOriginYPct?: number;
 }
 
 export interface ExplainerProps {
@@ -349,6 +371,8 @@ export interface ExplainerProps {
   captions?: WordCaption[];
   audio?: AudioConfig;
   avatar?: AvatarConfig;
+  /** Live Unity WebGL build rendered as the bottom-most background layer. */
+  unityBackground?: UnityBackgroundConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -925,8 +949,8 @@ const OverlayRenderer: React.FC<{ overlay: Overlay }> = ({ overlay }) => {
 // ---------------------------------------------------------------------------
 
 export const Explainer: React.FC<ExplainerProps> = (props) => {
-  const { cuts, overlays, captions, audio, avatar } = props;
-  const { fps, durationInFrames } = useVideoConfig();
+  const { cuts, overlays, captions, audio, avatar, unityBackground } = props;
+  const { fps, durationInFrames, width, height } = useVideoConfig();
 
   // Resolve theme from props — playbook name, theme name, or custom themeConfig
   const theme = resolveTheme(props as Record<string, unknown>);
@@ -934,17 +958,22 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
   // Full-frame digital host as the bottom layer, with the UI floating on top.
   const bgAvatar = !!avatar?.enabled && avatar?.layer === "background";
 
-  return (
-    <AbsoluteFill style={{ background: theme.backgroundColor, fontFamily: theme.headingFont || fontFamily }}>
-      {/* Layer 0: Animated gradient background — driven by theme */}
-      <AnimatedBackground theme={theme} />
+  // When a Unity room shot + screen quad are supplied, the UI page is
+  // perspective-warped into the screen; the host and captions stay as flat
+  // overlays (the host is parked bottom-right, seated in the room).
+  const screen = unityBackground;
+  const warp = !!(screen?.enabled && screen.image && screen.screenQuad);
+  // Backdrop translucency + tint for the warped UI (holographic look).
+  const screenOpacity = screen?.screenOpacity ?? 0.4;
+  const screenTint = screen?.screenTint ?? "#0b2a52";
 
-      {/* Layer 0.5: Full-frame digital host (background mode) — sits above the
-          gradient, below the UI, which renders with transparent scene bgs. */}
-      {bgAvatar && (
-        <VRMAvatar background clipUrl={avatar?.clip} captions={captions} />
-      )}
+  // The screen's own backdrop (warped together with the UI).
+  const bgGradient = <AnimatedBackground theme={theme} />;
 
+  // UI content shown ON the screen — scenes + overlays + grade. No host, no
+  // captions, no page backdrop (that is `bgGradient`).
+  const screenContent = (
+    <>
       {/* Layer 1: Visual scenes */}
       {cuts.map((cut) => {
         const from = Math.round(cut.in_seconds * fps);
@@ -1004,17 +1033,51 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
         }}
       />
 
-      {/* Layer 3: Captions (word-by-word highlight) */}
-      {captions && captions.length > 0 && (
-        <CaptionOverlay
-          words={captions}
-          wordsPerPage={6}
-          fontSize={42}
-          highlightColor={theme.captionHighlightColor}
-          backgroundColor={theme.captionBackgroundColor}
-        />
-      )}
+    </>
+  );
 
+  // Full-frame digital host (background mode) — flat overlay, NOT warped. The
+  // 3D framing parks her bottom-right; a 2D CSS scale/offset gives pixel-exact
+  // final placement (scale about her on-screen center).
+  const hostScale = avatar?.bgScale ?? 1;
+  const hostOffsetX = avatar?.bgOffsetXpx ?? 0;
+  const hostOffsetY = avatar?.bgOffsetYpx ?? 0;
+  const hostOriginX = avatar?.bgOriginXPct ?? 70;
+  const hostOriginY = avatar?.bgOriginYPct ?? 57;
+  const hostEl = bgAvatar ? (
+    <AbsoluteFill
+      style={{
+        transformOrigin: `${hostOriginX}% ${hostOriginY}%`,
+        transform: `translate(${hostOffsetX}px, ${hostOffsetY}px) scale(${hostScale})`,
+      }}
+    >
+      <VRMAvatar
+        background
+        clipUrl={avatar?.clip}
+        clipSpeed={avatar?.clipSpeed}
+        bgModelX={avatar?.bgModelX}
+        bgModelY={avatar?.bgModelY}
+        bgCameraZ={avatar?.bgCameraZ}
+        bgModelYawDeg={avatar?.bgModelYawDeg}
+        captions={captions}
+      />
+    </AbsoluteFill>
+  ) : null;
+
+  // Captions (word-by-word highlight) — flat overlay, never warped.
+  const captionsEl =
+    captions && captions.length > 0 ? (
+      <CaptionOverlay
+        words={captions}
+        wordsPerPage={6}
+        fontSize={42}
+        highlightColor={theme.captionHighlightColor}
+        backgroundColor={theme.captionBackgroundColor}
+      />
+    ) : null;
+
+  const audioEls = (
+    <>
       {/* Layer 4: Audio — narration */}
       {audio?.narration?.src && (
         <Audio src={resolveAsset(audio.narration.src)} volume={audio.narration.volume ?? 1} />
@@ -1049,6 +1112,60 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
           }}
         />
       )}
+    </>
+  );
+
+  // Warped path: room shot behind, UI perspective-mapped into the screen quad;
+  // host + captions are flat overlays on top.
+  if (warp) {
+    return (
+      <AbsoluteFill style={{ background: "#000", fontFamily: theme.headingFont || fontFamily }}>
+        <Img
+          src={resolveAsset(screen!.image!)}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width,
+            height,
+            transformOrigin: "0 0",
+            transform: quadMatrix3d(width, height, screen!.screenQuad!),
+            backfaceVisibility: "hidden",
+          }}
+        >
+          <AbsoluteFill
+            style={{ background: hexToRgba(screenTint, screenOpacity), overflow: "hidden" }}
+          >
+            <AbsoluteFill style={{ opacity: screenOpacity }}>{bgGradient}</AbsoluteFill>
+            {/* Holographic blue wash over the backdrop (below the UI content). */}
+            <AbsoluteFill
+              style={{
+                pointerEvents: "none",
+                background:
+                  "radial-gradient(ellipse 95% 85% at 50% 42%, rgba(70,170,240,0.40) 0%, rgba(20,90,180,0.34) 55%, rgba(8,30,72,0.40) 100%)",
+                mixBlendMode: "screen",
+              }}
+            />
+            {screenContent}
+          </AbsoluteFill>
+        </div>
+        {hostEl}
+        {captionsEl}
+        {audioEls}
+      </AbsoluteFill>
+    );
+  }
+
+  return (
+    <AbsoluteFill style={{ background: theme.backgroundColor, fontFamily: theme.headingFont || fontFamily }}>
+      {bgGradient}
+      {hostEl}
+      {screenContent}
+      {captionsEl}
+      {audioEls}
     </AbsoluteFill>
   );
 };

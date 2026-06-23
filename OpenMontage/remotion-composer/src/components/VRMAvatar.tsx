@@ -157,19 +157,25 @@ interface VRMModelProps {
   modelY?: number;
   /** horizontal offset; positive shifts the host toward the right edge */
   modelX?: number;
+  /** yaw in radians about the vertical axis; negative turns clockwise viewed from above */
+  modelYaw?: number;
   /**
    * Optional Mixamo FBX clip (public/ relative path). When set, the body is
    * driven by this retargeted clip instead of the hand-authored procedural
    * idle; lip-sync / blink / expressions still run on top.
    */
   clipUrl?: string;
+  /** Playback speed multiplier for the Mixamo clip (1 = original). */
+  clipSpeed?: number;
 }
 
 const VRMModel: React.FC<VRMModelProps> = ({
   captions,
   modelY = -0.95,
   modelX = 0,
+  modelYaw = 0,
   clipUrl,
+  clipSpeed = 1,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -275,9 +281,11 @@ const VRMModel: React.FC<VRMModelProps> = ({
     const mixer = mixerRef.current;
     if (mixer) {
       // Body driven by the retargeted Mixamo clip. setTime keeps playback
-      // frame-deterministic; wrap into the clip duration so it loops.
+      // frame-deterministic; clipSpeed scales the clock, then wrap into the
+      // clip duration so it loops.
       const dur = clipDurationRef.current || 1;
-      mixer.setTime(((timeSec % dur) + dur) % dur);
+      const ct = timeSec * clipSpeed;
+      mixer.setTime(((ct % dur) + dur) % dur);
     }
 
     const h = vrm.humanoid;
@@ -379,11 +387,17 @@ const VRMModel: React.FC<VRMModelProps> = ({
       continueRender(handle);
       continued.current = true;
     }
-  }, [vrm, frame, fps, captions, advance, handle]);
+  }, [vrm, frame, fps, captions, advance, handle, clipSpeed]);
 
   return (
     <>
-      {vrm && <primitive object={vrm.scene} position={[modelX, modelY, 0]} />}
+      {vrm && (
+        <primitive
+          object={vrm.scene}
+          position={[modelX, modelY, 0]}
+          rotation={[0, modelYaw, 0]}
+        />
+      )}
     </>
   );
 };
@@ -424,11 +438,20 @@ export interface VRMAvatarProps {
   bgCameraZ?: number;
   /** Model vertical offset for background mode. */
   bgModelY?: number;
+  /** Model horizontal offset for background mode (positive = toward right). */
+  bgModelX?: number;
+  /** Yaw in degrees about the vertical axis for background mode (positive = clockwise viewed from above). */
+  bgModelYawDeg?: number;
+  /** Playback speed multiplier for the Mixamo clip (1 = original). */
+  clipSpeed?: number;
 }
 
-// Background-mode framing for a seated host centred in the landscape canvas.
-const BG_CAMERA_Z = 2.4;
-const BG_MODEL_Y = -1.35;
+// Background-mode framing: a seated host parked on the right, vertically centred
+// in the landscape canvas, with the UI floating over the left/centre.
+const BG_CAMERA_Z = 2.2;
+const BG_MODEL_Y = -1.15;
+const BG_MODEL_X = 0.62;
+const BG_MODEL_YAW_DEG = 0;
 
 function easeInOut(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -442,6 +465,9 @@ export const VRMAvatar: React.FC<VRMAvatarProps> = ({
   background = false,
   bgCameraZ = BG_CAMERA_Z,
   bgModelY = BG_MODEL_Y,
+  bgModelX = BG_MODEL_X,
+  bgModelYawDeg = BG_MODEL_YAW_DEG,
+  clipSpeed = 1,
 }) => {
   const { width, height } = useVideoConfig();
   const frame = useCurrentFrame();
@@ -466,7 +492,7 @@ export const VRMAvatar: React.FC<VRMAvatarProps> = ({
           <ambientLight intensity={1.1} />
           <directionalLight position={[1, 2, 2]} intensity={1.4} />
           <directionalLight position={[-1.5, 1, 1.5]} intensity={0.6} />
-          <VRMModel captions={captions} modelX={0} modelY={bgModelY} clipUrl={clipUrl} />
+          <VRMModel captions={captions} modelX={bgModelX} modelY={bgModelY} modelYaw={(-bgModelYawDeg * Math.PI) / 180} clipUrl={clipUrl} clipSpeed={clipSpeed} />
         </ThreeCanvas>
       </AbsoluteFill>
     );

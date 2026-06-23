@@ -33,18 +33,42 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_MD = REPO_ROOT / "content-library" / "ep02-video-render" / "04-script" / "README.md"
+TTS_MANIFEST = REPO_ROOT / "content-library" / "ep02-video-render" / "06-tts" / "assets" / "manifest.json"
 COMPOSER_DIR = Path(__file__).resolve().parent / "remotion-composer"
-OUTPUT_JSON = COMPOSER_DIR / "public" / "demo-props" / "ep02-shots.json"
+PUBLIC_DIR = COMPOSER_DIR / "public"
+OUTPUT_JSON = PUBLIC_DIR / "demo-props" / "ep02-shots.json"
+
+# Unity room render as the bottom layer; the UI page is perspective-warped into
+# the in-scene display. Drop the shot into public/UnityBG.png and this turns on
+# automatically. The host + captions are flat overlays (not warped).
+UNITY_BG_IMAGE = "UnityBG.png"
+# Screen quad corners (1920x1080 px) the UI page is warped into. Exact edge of
+# the in-scene display (no expansion — the real render has no chroma fringe).
+UNITY_BG_QUAD = {
+    "tl": [13, 142],
+    "tr": [1194, 275],
+    "br": [1194, 791],
+    "bl": [13, 919],
+}
 
 FPS = 30
 THEME = "flat-motion-graphics"
 
 # Digital host as a full-frame background layer (Mixamo clip drives the body);
-# the Remotion UI floats on top with transparent scene backgrounds.
+# the Remotion UI floats on top with transparent scene backgrounds. The clip
+# plays at 0.6x and the host is parked on the right, vertically centred.
 AVATAR = {
     "enabled": True,
     "layer": "background",
     "clip": "avatars/Sitting.fbx",
+    "clipSpeed": 0.6,
+    "bgModelX": 2.10,
+    "bgModelY": -1.35,
+    "bgCameraZ": 5.90,
+    "bgModelYawDeg": 50,
+    # 2D placement (CSS, pixel-exact): 1.43x size, nudged down 50px.
+    "bgScale": 1.43,
+    "bgOffsetYpx": 50,
 }
 
 TEMPLATE_TO_TYPE = {
@@ -187,8 +211,33 @@ def load_ssot_sections() -> list[dict[str, Any]]:
     return json.loads(block)["sections"]
 
 
-def build_cuts(sections: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], float]:
+def load_tts_manifest() -> dict[str, Any] | None:
+    """Per-shot real durations + lip-sync captions from 06-tts, if synthesised."""
+    if not TTS_MANIFEST.exists():
+        return None
+    data = json.loads(TTS_MANIFEST.read_text(encoding="utf-8"))
+    if data.get("provider_status") != "synthesized":
+        return None
+    return data
+
+
+def build_cuts(
+    sections: list[dict[str, Any]],
+    tts: dict[str, Any] | None,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], float]:
+    # When 06-tts has been synthesised it is the timing source of truth: each
+    # shot's on-screen cut runs exactly as long as its narration segment, and
+    # the captions (absolute ms) drive both the burned-in subtitles and the
+    # host's lip-sync.
+    tts_dur: dict[str, float] = {}
+    tts_caps: dict[str, list[dict[str, Any]]] = {}
+    if tts:
+        for s in tts["shots"]:
+            tts_dur[s["id"]] = float(s["duration_seconds"])
+            tts_caps[s["id"]] = s.get("captions") or []
+
     cuts: list[dict[str, Any]] = []
+    captions: list[dict[str, Any]] = []
     cursor = 0.0
     for sec in sections:
         shots = sec.get("shots") or []
@@ -203,7 +252,8 @@ def build_cuts(sections: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], fl
             content = SHOT_CONTENT.get(sid)
             if content is None:
                 raise SystemExit(f"shot {sid}: no authored SHOT_CONTENT")
-            frames = int(round(float(shot["duration_seconds"]) * FPS))
+            seconds = tts_dur.get(sid, float(shot["duration_seconds"]))
+            frames = int(round(seconds * FPS))
             dur = frames / FPS
             cut = {
                 "id": f"shot-{sid}",
@@ -214,25 +264,40 @@ def build_cuts(sections: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], fl
                 **content,
             }
             cuts.append(cut)
+            for cap in tts_caps.get(sid, []):
+                captions.append(cap)
             cursor += dur
-    return cuts, cursor
+    return cuts, captions, cursor
 
 
 def main() -> int:
     sections = load_ssot_sections()
-    cuts, total = build_cuts(sections)
+    tts = load_tts_manifest()
+    cuts, captions, total = build_cuts(sections, tts)
     payload: dict[str, Any] = {
         "theme": THEME,
         "cuts": cuts,
         "overlays": [],
-        "captions": [],
+        "captions": captions,
         "avatar": AVATAR,
     }
+    unity_present = (PUBLIC_DIR / UNITY_BG_IMAGE).exists()
+    payload["unityBackground"] = {
+        "enabled": unity_present,
+        "image": UNITY_BG_IMAGE,
+        "screenQuad": UNITY_BG_QUAD,
+        # Translucent + blue-tinted UI backdrop (holographic look).
+        "screenOpacity": 0.4,
+        "screenTint": "#0b2a52",
+    }
+    if tts and tts.get("narration_audio"):
+        payload["audio"] = {"narration": {"src": tts["narration_audio"], "volume": 1}}
     OUTPUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_JSON.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print("=" * 60)
     print(f"Wrote {OUTPUT_JSON.relative_to(REPO_ROOT)}")
     print(f"Cuts: {len(cuts)} | Duration: {total:.2f}s ({int(round(total * FPS))} frames @ {FPS}fps)")
+    print(f"Captions: {len(captions)} | TTS: {'on' if tts else 'off (storyboard timing)'}")
     by_type: dict[str, int] = {}
     for c in cuts:
         by_type[c["type"]] = by_type.get(c["type"], 0) + 1
