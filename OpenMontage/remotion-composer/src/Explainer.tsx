@@ -355,6 +355,13 @@ interface AvatarConfig extends AvatarSceneConfig {
   bgCameraZ?: number;
   /** Yaw in degrees about the vertical axis (positive = clockwise viewed from above). */
   bgModelYawDeg?: number;
+  /** 2D placement of the background host overlay (CSS, pixel-exact). Scale is
+      about the origin (% of frame); offsets are in composition pixels. */
+  bgScale?: number;
+  bgOffsetXpx?: number;
+  bgOffsetYpx?: number;
+  bgOriginXPct?: number;
+  bgOriginYPct?: number;
 }
 
 export interface ExplainerProps {
@@ -1028,19 +1035,32 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
     </>
   );
 
-  // Full-frame digital host (background mode) — flat overlay, NOT warped. Its
-  // on-screen position comes from the avatar's 3D framing (parked bottom-right).
+  // Full-frame digital host (background mode) — flat overlay, NOT warped. The
+  // 3D framing parks her bottom-right; a 2D CSS scale/offset gives pixel-exact
+  // final placement (scale about her on-screen center).
+  const hostScale = avatar?.bgScale ?? 1;
+  const hostOffsetX = avatar?.bgOffsetXpx ?? 0;
+  const hostOffsetY = avatar?.bgOffsetYpx ?? 0;
+  const hostOriginX = avatar?.bgOriginXPct ?? 70;
+  const hostOriginY = avatar?.bgOriginYPct ?? 57;
   const hostEl = bgAvatar ? (
-    <VRMAvatar
-      background
-      clipUrl={avatar?.clip}
-      clipSpeed={avatar?.clipSpeed}
-      bgModelX={avatar?.bgModelX}
-      bgModelY={avatar?.bgModelY}
-      bgCameraZ={avatar?.bgCameraZ}
-      bgModelYawDeg={avatar?.bgModelYawDeg}
-      captions={captions}
-    />
+    <AbsoluteFill
+      style={{
+        transformOrigin: `${hostOriginX}% ${hostOriginY}%`,
+        transform: `translate(${hostOffsetX}px, ${hostOffsetY}px) scale(${hostScale})`,
+      }}
+    >
+      <VRMAvatar
+        background
+        clipUrl={avatar?.clip}
+        clipSpeed={avatar?.clipSpeed}
+        bgModelX={avatar?.bgModelX}
+        bgModelY={avatar?.bgModelY}
+        bgCameraZ={avatar?.bgCameraZ}
+        bgModelYawDeg={avatar?.bgModelYawDeg}
+        captions={captions}
+      />
+    </AbsoluteFill>
   ) : null;
 
   // Captions (word-by-word highlight) — flat overlay, never warped.
