@@ -82,6 +82,12 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
 }
 
+// hex -> rgba() string with the given alpha
+function hexToRgba(hex: string, a: number): string {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
 // Detect if a color is "light" (for choosing grid/overlay treatment)
 function isLightColor(hex: string): boolean {
   const { r, g, b } = hexToRgb(hex);
@@ -950,6 +956,8 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
   // overlays (the host is parked bottom-right, seated in the room).
   const screen = unityBackground;
   const warp = !!(screen?.enabled && screen.image && screen.screenQuad);
+  // Backdrop translucency for the warped UI (holographic look). 1 = opaque.
+  const screenOpacity = screen?.screenOpacity ?? 0.4;
 
   // The screen's own backdrop (warped together with the UI).
   const bgGradient = <AnimatedBackground theme={theme} />;
@@ -1107,8 +1115,10 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
             backfaceVisibility: "hidden",
           }}
         >
-          <AbsoluteFill style={{ background: theme.backgroundColor, overflow: "hidden" }}>
-            {bgGradient}
+          <AbsoluteFill
+            style={{ background: hexToRgba(theme.backgroundColor, screenOpacity), overflow: "hidden" }}
+          >
+            <AbsoluteFill style={{ opacity: screenOpacity }}>{bgGradient}</AbsoluteFill>
             {screenContent}
           </AbsoluteFill>
         </div>

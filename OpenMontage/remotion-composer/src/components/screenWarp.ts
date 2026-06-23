@@ -18,6 +18,11 @@ export interface UnityBackgroundConfig {
   image?: string;
   /** Green-screen quad the page is warped into. */
   screenQuad?: ScreenQuad;
+  /**
+   * Backdrop opacity of the warped UI (0..1). < 1 makes the page background
+   * translucent so the in-scene display shows through — a holographic look.
+   */
+  screenOpacity?: number;
 }
 
 function adj(m: number[]): number[] {
