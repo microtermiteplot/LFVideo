@@ -23,6 +23,8 @@ export interface UnityBackgroundConfig {
    * translucent so the in-scene display shows through — a holographic look.
    */
   screenOpacity?: number;
+  /** Backdrop tint (hex) for the warped UI — e.g. a blue for a hologram feel. */
+  screenTint?: string;
 }
 
 function adj(m: number[]): number[] {

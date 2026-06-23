@@ -963,8 +963,9 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
   // overlays (the host is parked bottom-right, seated in the room).
   const screen = unityBackground;
   const warp = !!(screen?.enabled && screen.image && screen.screenQuad);
-  // Backdrop translucency for the warped UI (holographic look). 1 = opaque.
+  // Backdrop translucency + tint for the warped UI (holographic look).
   const screenOpacity = screen?.screenOpacity ?? 0.4;
+  const screenTint = screen?.screenTint ?? "#0b2a52";
 
   // The screen's own backdrop (warped together with the UI).
   const bgGradient = <AnimatedBackground theme={theme} />;
@@ -1136,9 +1137,18 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
           }}
         >
           <AbsoluteFill
-            style={{ background: hexToRgba(theme.backgroundColor, screenOpacity), overflow: "hidden" }}
+            style={{ background: hexToRgba(screenTint, screenOpacity), overflow: "hidden" }}
           >
             <AbsoluteFill style={{ opacity: screenOpacity }}>{bgGradient}</AbsoluteFill>
+            {/* Holographic blue wash over the backdrop (below the UI content). */}
+            <AbsoluteFill
+              style={{
+                pointerEvents: "none",
+                background:
+                  "radial-gradient(ellipse 95% 85% at 50% 42%, rgba(70,170,240,0.40) 0%, rgba(20,90,180,0.34) 55%, rgba(8,30,72,0.40) 100%)",
+                mixBlendMode: "screen",
+              }}
+            />
             {screenContent}
           </AbsoluteFill>
         </div>

@@ -1554,7 +1554,8 @@
         919
       ]
     },
-    "screenOpacity": 0.4
+    "screenOpacity": 0.4,
+    "screenTint": "#0b2a52"
   },
   "audio": {
     "narration": {

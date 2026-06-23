@@ -286,8 +286,9 @@ def main() -> int:
         "enabled": unity_present,
         "image": UNITY_BG_IMAGE,
         "screenQuad": UNITY_BG_QUAD,
-        # Translucent UI backdrop so the display shows through (hologram look).
+        # Translucent + blue-tinted UI backdrop (holographic look).
         "screenOpacity": 0.4,
+        "screenTint": "#0b2a52",
     }
     if tts and tts.get("narration_audio"):
         payload["audio"] = {"narration": {"src": tts["narration_audio"], "volume": 1}}
