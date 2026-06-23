@@ -66,8 +66,8 @@ AVATAR = {
     "bgModelY": -1.35,
     "bgCameraZ": 5.90,
     "bgModelYawDeg": 50,
-    # 2D placement (CSS, pixel-exact): 1.3x size, nudged down 50px.
-    "bgScale": 1.3,
+    # 2D placement (CSS, pixel-exact): 1.43x size, nudged down 50px.
+    "bgScale": 1.43,
     "bgOffsetYpx": 50,
 }
 
