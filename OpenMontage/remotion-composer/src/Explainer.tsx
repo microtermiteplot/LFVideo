@@ -945,32 +945,19 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
   // Full-frame digital host as the bottom layer, with the UI floating on top.
   const bgAvatar = !!avatar?.enabled && avatar?.layer === "background";
 
-  // The whole page is rendered as "screen content". When a Unity room shot +
-  // green-screen quad are supplied, this content is perspective-warped into the
-  // quad and the room shot is dropped behind it.
+  // When a Unity room shot + screen quad are supplied, the UI page is
+  // perspective-warped into the screen; the host and captions stay as flat
+  // overlays (the host is parked bottom-right, seated in the room).
   const screen = unityBackground;
   const warp = !!(screen?.enabled && screen.image && screen.screenQuad);
 
-  const inner = (
+  // The screen's own backdrop (warped together with the UI).
+  const bgGradient = <AnimatedBackground theme={theme} />;
+
+  // UI content shown ON the screen — scenes + overlays + grade. No host, no
+  // captions, no page backdrop (that is `bgGradient`).
+  const screenContent = (
     <>
-      {/* Layer 0: Animated gradient background — driven by theme. */}
-      <AnimatedBackground theme={theme} />
-
-      {/* Layer 0.5: Full-frame digital host (background mode) — sits above the
-          gradient, below the UI, which renders with transparent scene bgs. */}
-      {bgAvatar && (
-        <VRMAvatar
-          background
-          clipUrl={avatar?.clip}
-          clipSpeed={avatar?.clipSpeed}
-          bgModelX={avatar?.bgModelX}
-          bgModelY={avatar?.bgModelY}
-          bgCameraZ={avatar?.bgCameraZ}
-          bgModelYawDeg={avatar?.bgModelYawDeg}
-          captions={captions}
-        />
-      )}
-
       {/* Layer 1: Visual scenes */}
       {cuts.map((cut) => {
         const from = Math.round(cut.in_seconds * fps);
@@ -1030,18 +1017,35 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
         }}
       />
 
-      {/* Layer 3: Captions (word-by-word highlight) */}
-      {captions && captions.length > 0 && (
-        <CaptionOverlay
-          words={captions}
-          wordsPerPage={6}
-          fontSize={42}
-          highlightColor={theme.captionHighlightColor}
-          backgroundColor={theme.captionBackgroundColor}
-        />
-      )}
     </>
   );
+
+  // Full-frame digital host (background mode) — flat overlay, NOT warped. Its
+  // on-screen position comes from the avatar's 3D framing (parked bottom-right).
+  const hostEl = bgAvatar ? (
+    <VRMAvatar
+      background
+      clipUrl={avatar?.clip}
+      clipSpeed={avatar?.clipSpeed}
+      bgModelX={avatar?.bgModelX}
+      bgModelY={avatar?.bgModelY}
+      bgCameraZ={avatar?.bgCameraZ}
+      bgModelYawDeg={avatar?.bgModelYawDeg}
+      captions={captions}
+    />
+  ) : null;
+
+  // Captions (word-by-word highlight) — flat overlay, never warped.
+  const captionsEl =
+    captions && captions.length > 0 ? (
+      <CaptionOverlay
+        words={captions}
+        wordsPerPage={6}
+        fontSize={42}
+        highlightColor={theme.captionHighlightColor}
+        backgroundColor={theme.captionBackgroundColor}
+      />
+    ) : null;
 
   const audioEls = (
     <>
@@ -1082,7 +1086,8 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
     </>
   );
 
-  // Warped path: room shot behind, page perspective-mapped into the green quad.
+  // Warped path: room shot behind, UI perspective-mapped into the screen quad;
+  // host + captions are flat overlays on top.
   if (warp) {
     return (
       <AbsoluteFill style={{ background: "#000", fontFamily: theme.headingFont || fontFamily }}>
@@ -1103,9 +1108,12 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
           }}
         >
           <AbsoluteFill style={{ background: theme.backgroundColor, overflow: "hidden" }}>
-            {inner}
+            {bgGradient}
+            {screenContent}
           </AbsoluteFill>
         </div>
+        {hostEl}
+        {captionsEl}
         {audioEls}
       </AbsoluteFill>
     );
@@ -1113,7 +1121,10 @@ export const Explainer: React.FC<ExplainerProps> = (props) => {
 
   return (
     <AbsoluteFill style={{ background: theme.backgroundColor, fontFamily: theme.headingFont || fontFamily }}>
-      {inner}
+      {bgGradient}
+      {hostEl}
+      {screenContent}
+      {captionsEl}
       {audioEls}
     </AbsoluteFill>
   );

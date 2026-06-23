@@ -38,17 +38,17 @@ COMPOSER_DIR = Path(__file__).resolve().parent / "remotion-composer"
 PUBLIC_DIR = COMPOSER_DIR / "public"
 OUTPUT_JSON = PUBLIC_DIR / "demo-props" / "ep02-shots.json"
 
-# Unity room screenshot as the bottom layer; the whole page is perspective-
-# warped into the green-screen quad (corners in 1920x1080 px, detected from the
-# image). Drop the shot into public/UnityBG.png and this turns on automatically.
+# Unity room render as the bottom layer; the UI page is perspective-warped into
+# the in-scene display. Drop the shot into public/UnityBG.png and this turns on
+# automatically. The host + captions are flat overlays (not warped).
 UNITY_BG_IMAGE = "UnityBG.png"
-# Detected inner edge of the green screen, expanded ~6px outward so the warped
-# page over-covers the chroma fringe instead of leaving a green sliver.
+# Screen quad corners (1920x1080 px) the UI page is warped into. Exact edge of
+# the in-scene display (no expansion — the real render has no chroma fringe).
 UNITY_BG_QUAD = {
-    "tl": [4, 136],
-    "tr": [1203, 271],
-    "br": [1203, 795],
-    "bl": [4, 925],
+    "tl": [13, 142],
+    "tr": [1194, 275],
+    "br": [1194, 791],
+    "bl": [13, 919],
 }
 
 FPS = 30
@@ -62,8 +62,8 @@ AVATAR = {
     "layer": "background",
     "clip": "avatars/Sitting.fbx",
     "clipSpeed": 0.6,
-    "bgModelX": 1.30,
-    "bgModelY": -1.30,
+    "bgModelX": 2.10,
+    "bgModelY": -1.35,
     "bgCameraZ": 5.90,
     "bgModelYawDeg": 30,
 }
